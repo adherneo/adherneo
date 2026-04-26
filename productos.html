@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo — AdherNeo</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+/* ─── TOKENS ─────────────────────────────────────────────────────────────────── */
+:root {
+  --navy:       #12264e;
+  --navy-deep:  #0d1e3d;
+  --blue:       #2563be;
+  --blue-light: #3b82d4;
+  --sky:        #e8f0ff;
+  --sky-mid:    #d0e0f8;
+  --bg:         #f5f8ff;
+  --surface:    #ffffff;
+  --border:     #d8e4f5;
+  --text:       #1a2540;
+  --text-mid:   #4a5978;
+  --text-soft:  #8494b0;
+  --nav-h: 72px;
+  --radius: 12px;
+  --shadow: 0 4px 24px rgba(18,38,78,.10);
+  --shadow-sm: 0 2px 10px rgba(18,38,78,.07);
+}
+[data-theme="dark"] {
+  --bg:         #0b1527;
+  --surface:    #111f38;
+  --border:     #1e3660;
+  --text:       #e4ecff;
+  --text-mid:   #9db3d4;
+  --text-soft:  #566e96;
+  --sky:        #162540;
+  --sky-mid:    #1c2f50;
+  --shadow: 0 4px 24px rgba(0,0,0,.4);
+  --shadow-sm: 0 2px 10px rgba(0,0,0,.3);
+}
+
+/* ─── BASE ───────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg); color: var(--text);
+  padding-top: var(--nav-h); /* push content below fixed navbar */
+  transition: background .3s, color .3s;
+  overflow-x: hidden;
+}
+a { text-decoration: none; color: inherit; }
+
+/* ─── NAVBAR ─────────────────────────────────────────────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  height: var(--nav-h);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; padding: 0 40px; gap: 32px;
+  transition: background .3s, border-color .3s;
+}
+.nav-logo { flex-shrink: 0; display: flex; align-items: center; }
+.nav-logo svg { height: 48px; width: auto; }
+.nav-links { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.nav-link {
+  padding: 8px 14px; border-radius: 8px;
+  font-size: 14px; font-weight: 500; color: var(--text-mid);
+  transition: background .15s, color .15s;
+}
+.nav-link:hover { background: var(--sky); color: var(--navy); }
+.nav-link.active { color: var(--navy); font-weight: 600; }
+[data-theme="dark"] .nav-link.active,
+[data-theme="dark"] .nav-link:hover { color: var(--blue-light); }
+.nav-cta {
+  padding: 9px 20px; background: var(--navy); color: #fff !important;
+  border-radius: 9px; font-size: 14px; font-weight: 700;
+  transition: background .15s, transform .1s; margin-left: 8px; white-space: nowrap;
+}
+.nav-cta:hover { background: var(--navy-deep); transform: translateY(-1px); }
+.dark-toggle {
+  margin-left: 8px; width: 40px; height: 40px;
+  border: 1px solid var(--border); border-radius: 8px; background: transparent;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; transition: background .15s; flex-shrink: 0;
+}
+.dark-toggle:hover { background: var(--sky); }
+.nav-burger {
+  display: none; margin-left: auto; background: none; border: none; cursor: pointer;
+  width: 36px; height: 36px; flex-direction: column; justify-content: center; gap: 5px; padding: 4px;
+}
+.nav-burger span { display: block; height: 2px; width: 100%; background: var(--text); border-radius: 2px; }
+nav.mobile-open .nav-links {
+  display: flex; flex-direction: column;
+  position: fixed; top: var(--nav-h); left: 0; right: 0;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 16px 20px 24px; gap: 4px; z-index: 999; box-shadow: var(--shadow);
+}
+
+/* ─── CATALOG BAR ─────────────────────────────────────────────────────────────── */
+.catalog-bar {
+  position: sticky; top: var(--nav-h); z-index: 900;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(18,38,78,.07);
+  padding: 10px 40px 8px;
+  transition: background .3s, border-color .3s;
+}
+.catalog-bar-top {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+}
+.back-link {
+  display: flex; align-items: center;
+  color: var(--text-mid);
+  padding: 6px 6px; border-radius: 7px;
+  border: none; background: transparent;
+  transition: all .15s; flex-shrink: 0;
+  cursor: pointer;
+}
+.back-link:hover { color: var(--navy); background: var(--sky); }
+[data-theme="dark"] .back-link:hover { color: var(--blue-light); background: var(--sky); }
+
+.search-wrap { position: relative; flex: 1; max-width: 380px; }
+.search-wrap input {
+  width: 100%; padding: 8px 12px 8px 36px;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 14px; color: var(--text); background: var(--bg);
+  outline: none; transition: border-color .15s, background .3s;
+}
+.search-wrap input:focus { border-color: var(--blue); background: var(--surface); }
+.search-wrap input::placeholder { color: var(--text-soft); }
+.search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-soft); pointer-events: none; font-size: 15px; }
+
+.sort-select {
+  padding: 8px 11px; border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 13px; color: var(--text-mid); background: var(--bg);
+  outline: none; cursor: pointer; min-width: 150px;
+}
+.sort-select:focus { border-color: var(--blue); }
+
+.results-count { font-size: 13px; color: var(--text-soft); white-space: nowrap; margin-left: auto; }
+
+.cart-sticky-btn {
+  display: flex; align-items: center; gap: 8px; padding: 9px 18px;
+  background: var(--navy); color: #fff; border: none; border-radius: 9px;
+  font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  transition: background .15s, transform .1s; box-shadow: 0 3px 12px rgba(18,38,78,.22); flex-shrink: 0;
+}
+.cart-sticky-btn:hover { background: var(--navy-deep); transform: translateY(-1px); }
+.cart-sticky-btn.has-items { background: linear-gradient(135deg,var(--navy),var(--blue)); }
+.cart-badge {
+  background: rgba(255,255,255,.22); border-radius: 100px;
+  padding: 1px 8px; font-size: 12px; font-weight: 700;
+}
+
+/* ─── FILTER PILLS ────────────────────────────────────────────────────────────── */
+.filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter-pill {
+  padding: 4px 14px; border-radius: 100px; border: 1.5px solid var(--border);
+  font-size: 13px; font-weight: 500; color: var(--text-mid); background: var(--bg);
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.filter-pill:hover { border-color: var(--blue); color: var(--blue); background: var(--sky); }
+.filter-pill.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+[data-theme="dark"] .filter-pill.active { background: var(--blue); border-color: var(--blue); }
+
+/* ─── MAIN ───────────────────────────────────────────────────────────────────── */
+.catalog-main { max-width: 1280px; margin: 0 auto; padding: 24px 40px 80px; }
+
+/* ─── PRODUCT GRID ────────────────────────────────────────────────────────────── */
+.products-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; }
+.empty-state {
+  grid-column: 1/-1; text-align: center; padding: 80px 20px; color: var(--text-soft);
+}
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 18px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; }
+.empty-state p { font-size: 14px; }
+
+/* ─── PRODUCT CARD ────────────────────────────────────────────────────────────── */
+.product-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: box-shadow .2s, transform .2s, border-color .2s;
+  position: relative;
+}
+.product-card:hover { box-shadow: var(--shadow); transform: translateY(-3px); border-color: var(--sky-mid); }
+.product-card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg,var(--navy),var(--blue));
+  transform: scaleX(0); transform-origin: left; transition: transform .25s;
+}
+.product-card:hover::after { transform: scaleX(1); }
+
+/* Emoji area — click opens modal */
+.card-emoji-wrap {
+  padding: 20px 20px 10px; text-align: center; cursor: pointer;
+  position: relative; transition: background .15s;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.card-emoji-wrap:hover { background: var(--sky); }
+[data-theme="dark"] .card-emoji-wrap:hover { background: var(--sky); }
+.card-emoji-circle {
+  width: 72px; height: 72px; margin: 0 auto;
+  background: linear-gradient(135deg,var(--sky),var(--sky-mid));
+  border-radius: 18px; display: flex; align-items: center; justify-content: center;
+  transition: background .2s, color .2s; color: var(--text);
+}
+.card-emoji-circle svg { width: 36px; height: 36px; }
+.card-emoji-wrap:hover .card-emoji-circle { background: linear-gradient(135deg,var(--navy),var(--blue)); color: #fff; }
+.preview-hint {
+  position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+  font-size: 10px; font-weight: 600; color: var(--blue); opacity: 0;
+  transition: opacity .15s; white-space: nowrap; letter-spacing: .03em;
+}
+[data-theme="dark"] .preview-hint { color: var(--blue-light); }
+.card-emoji-wrap:hover .preview-hint { opacity: 1; }
+
+/* Code — bigger */
+.card-code-bar { text-align: center; padding: 6px 12px 0; }
+.card-code {
+  font-family: 'Courier New', monospace; font-size: 15px; font-weight: 800;
+  color: var(--blue); background: var(--sky); border-radius: 5px; padding: 2px 10px;
+  display: inline-block; letter-spacing: .04em;
+}
+[data-theme="dark"] .card-code { color: var(--blue-light); }
+
+/* Body */
+.card-body { padding: 8px 14px 14px; flex: 1; display: flex; flex-direction: column; }
+.card-name { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.35; margin-bottom: 2px; }
+.card-cat  { font-size: 11px; color: var(--text-soft); margin-bottom: 8px; }
+
+/* Inline size/variant selection */
+.card-sel-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--text-soft); margin-bottom: 5px;
+}
+.card-size-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.card-size-pill {
+  padding: 3px 8px; border-radius: 5px; border: 1.5px solid var(--border);
+  font-size: 11px; font-weight: 600; color: var(--text-mid); background: var(--bg);
+  cursor: pointer; transition: all .12s;
+}
+.card-size-pill:hover { border-color: var(--blue); color: var(--blue); }
+.card-size-pill.selected { background: var(--navy); border-color: var(--navy); color: #fff; }
+[data-theme="dark"] .card-size-pill.selected { background: var(--blue); border-color: var(--blue); }
+.card-universal-badge {
+  font-size: 11px; font-weight: 600; background: var(--sky); color: var(--blue);
+  border-radius: 5px; padding: 3px 9px; display: inline-block; margin-bottom: 8px;
+}
+[data-theme="dark"] .card-universal-badge { color: var(--blue-light); }
+
+/* Footer row: qty + add */
+.card-footer-row {
+  display: flex; gap: 7px; align-items: center; margin-top: auto; padding-top: 6px;
+}
+.card-qty {
+  display: flex; align-items: center;
+  border: 1.5px solid var(--border); border-radius: 7px; overflow: hidden; background: var(--bg);
+  flex-shrink: 0;
+}
+.card-qty-btn {
+  width: 26px; height: 30px; background: none; border: none; cursor: pointer;
+  font-size: 16px; color: var(--text-mid); transition: background .12s;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.card-qty-btn:hover { background: var(--sky); color: var(--navy); }
+.card-qty-input {
+  width: 36px; height: 30px; text-align: center; border: none; outline: none;
+  font-size: 13px; font-weight: 700; color: var(--text); background: var(--bg);
+  border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+  -moz-appearance: textfield;
+}
+.card-qty-input::-webkit-inner-spin-button,
+.card-qty-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.card-qty-input:focus { background: var(--surface); }
+
+.card-add-btn {
+  flex: 1; height: 30px; padding: 0 8px;
+  background: var(--navy); color: #fff; border: none; border-radius: 7px;
+  font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s; white-space: nowrap;
+}
+.card-add-btn:hover { background: var(--navy-deep); }
+.card-add-btn.added { background: #1a7c4f !important; }
+
+/* ─── MODAL ───────────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(8,18,40,.6); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 18px; width: 100%; max-width: 440px;
+  box-shadow: 0 20px 60px rgba(18,38,78,.25);
+  transform: translateY(20px) scale(.97);
+  transition: transform .25s; overflow: hidden; position: relative;
+}
+.modal-overlay.open .modal-card { transform: none; }
+
+.modal-close-row { padding: 18px 20px 0; display: flex; justify-content: flex-end; }
+.modal-close {
+  width: 30px; height: 30px; border: 1px solid var(--border); border-radius: 7px;
+  background: transparent; cursor: pointer; font-size: 16px; color: var(--text-soft);
+  display: flex; align-items: center; justify-content: center; transition: background .15s;
+}
+.modal-close:hover { background: var(--bg); color: var(--text); }
+.modal-body { padding: 12px 26px 26px; }
+.modal-emoji-wrap { text-align: center; margin-bottom: 16px; }
+.modal-emoji-circle {
+  width: 90px; height: 90px;
+  background: linear-gradient(135deg,var(--navy),var(--blue));
+  border-radius: 24px; display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(18,38,78,.25); color: #fff;
+}
+.modal-emoji-circle svg { width: 46px; height: 46px; }
+.modal-emoji-circle img { width: 70px; height: 70px; object-fit: cover; border-radius: 16px; }
+.modal-code-wrap { text-align: center; margin-bottom: 6px; }
+.modal-code {
+  font-family: 'Courier New', monospace; font-size: 13px; font-weight: 800;
+  color: var(--blue); background: var(--sky); border-radius: 6px;
+  padding: 3px 10px; display: inline-block;
+}
+[data-theme="dark"] .modal-code { color: var(--blue-light); }
+.modal-name { font-size: 16px; font-weight: 700; color: var(--text); text-align: center; line-height: 1.3; margin-bottom: 4px; }
+.modal-cat  { font-size: 12px; color: var(--text-soft); text-align: center; margin-bottom: 16px; }
+.modal-divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+.modal-sec-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--text-soft); margin-bottom: 8px;
+}
+.modal-size-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.modal-size-pill {
+  padding: 6px 15px; border-radius: 7px; border: 1.5px solid var(--border);
+  font-size: 14px; font-weight: 600; color: var(--text-mid); background: var(--bg);
+  cursor: pointer; transition: all .15s;
+}
+.modal-size-pill:hover { border-color: var(--blue); color: var(--blue); }
+.modal-size-pill.selected { background: var(--navy); border-color: var(--navy); color: #fff; }
+[data-theme="dark"] .modal-size-pill.selected { background: var(--blue); border-color: var(--blue); }
+.modal-universal-label {
+  font-size: 14px; color: var(--text-mid); background: var(--sky); border-radius: 8px; padding: 8px 14px; display: inline-block;
+}
+.qty-row { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
+.qty-row-label { font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text-soft); }
+.qty-ctrl {
+  display: flex; align-items: center;
+  border: 1.5px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg);
+}
+.qty-ctrl-btn {
+  width: 34px; height: 36px; background: none; border: none; cursor: pointer;
+  font-size: 18px; color: var(--text-mid); display: flex; align-items: center; justify-content: center;
+  transition: background .12s;
+}
+.qty-ctrl-btn:hover { background: var(--sky); color: var(--navy); }
+.qty-ctrl-input {
+  width: 52px; height: 36px; text-align: center; border: none; outline: none;
+  font-size: 15px; font-weight: 700; color: var(--text); background: var(--bg);
+  border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+  -moz-appearance: textfield;
+}
+.qty-ctrl-input::-webkit-inner-spin-button,
+.qty-ctrl-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.qty-ctrl-input:focus { background: var(--surface); }
+
+.modal-add-btn {
+  width: 100%; padding: 12px; background: var(--navy); color: #fff; border: none;
+  border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer;
+  margin-top: 16px; transition: background .15s, transform .1s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.modal-add-btn:hover { background: var(--navy-deep); transform: translateY(-1px); }
+.modal-add-btn.added { background: #1a7c4f; }
+
+/* ─── ANIMATIONS ─────────────────────────────────────────────────────────────── */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+.shake { animation: shake .35s ease; }
+
+/* ─── FOOTER ─────────────────────────────────────────────────────────────────── */
+footer {
+  background: var(--navy); color: rgba(255,255,255,.7);
+  padding: 36px 40px; text-align: center; font-size: 13px;
+}
+footer a { color: rgba(255,255,255,.6); }
+footer a:hover { color: #fff; }
+.footer-logo-wrap { margin-bottom: 10px; }
+.footer-logo-wrap svg { height: 44px; width: auto; display: inline-block; }
+.footer-links-row { display: flex; gap: 20px; justify-content: center; margin: 10px 0; flex-wrap: wrap; }
+
+/* ─── RESPONSIVE ──────────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) { .products-grid { grid-template-columns: repeat(3,1fr); } }
+@media (max-width: 860px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .nav-burger { display: flex; }
+  .catalog-bar { padding: 10px 20px 8px; }
+  .catalog-main { padding: 16px 16px 60px; }
+  .products-grid { grid-template-columns: repeat(2,1fr); gap: 12px; }
+  .results-count { display: none; }
+}
+@media (max-width: 500px) {
+  .catalog-bar-top { flex-wrap: wrap; }
+  .search-wrap { max-width: 100%; flex: 1 1 100%; order: 2; }
+  .back-link { order: 1; }
+  .sort-select { order: 3; flex: 1; }
+  .cart-sticky-btn { order: 4; }
+  .results-count { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── NAVBAR ──────────────────────────────────────────────────────────────── -->
+<nav id="navbar">
+  <a href="landing.html" class="nav-logo" aria-label="AdherNeo inicio">
+    <svg viewBox="0 0 240 90" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="43" cy="36" r="30" fill="none" stroke="#12264e" stroke-width="2.8" id="logo-circle"/>
+      <text x="43" y="52" text-anchor="middle" font-family="Georgia,serif" font-size="42" font-weight="bold" fill="#12264e" id="logo-a">A</text>
+      <text x="90" y="55" text-anchor="start" font-family="Georgia,serif" font-size="36" font-weight="bold" fill="#12264e" id="logo-adher">Adher</text>
+      <text x="147" y="74" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#12264e" letter-spacing="4" id="logo-neo">neo</text>
+    </svg>
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a href="landing.html"         class="nav-link">Inicio</a>
+    <a href="landing.html#quienes" class="nav-link">Quiénes Somos</a>
+    <a href="productos.html"       class="nav-link active">Catálogo</a>
+    <a href="pedido.html"          class="nav-cta" id="cartNav">Carrito (0)</a>
+  </div>
+  <button class="dark-toggle" id="darkToggle" aria-label="Cambiar tema">🌙</button>
+  <button class="nav-burger" id="burger" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ─── CATALOG BAR ──────────────────────────────────────────────────────────── -->
+<div class="catalog-bar">
+  <div class="catalog-bar-top">
+    <a href="landing.html" class="back-link" title="Volver al inicio">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L6 10L12 16"/></svg>
+    </a>
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" placeholder="Buscar por nombre o código…" oninput="applyFilters()">
+    </div>
+    <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+      <option value="code">Ordenar por código</option>
+      <option value="name">Ordenar por nombre</option>
+      <option value="cat">Por categoría</option>
+    </select>
+    <span class="results-count" id="resultsCount"></span>
+    <button class="cart-sticky-btn" id="cartStickyBtn" onclick="location.href='pedido.html'">
+      Realizar Pedido <span class="cart-badge" id="cartBadge">0</span>
+    </button>
+  </div>
+  <div class="filter-pills" id="filterPills"></div>
+</div>
+
+<!-- ─── PRODUCT GRID ─────────────────────────────────────────────────────────── -->
+<main class="catalog-main">
+  <div class="products-grid" id="productsGrid"></div>
+</main>
+
+<!-- ─── MODAL (preview rápida) ───────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal-card">
+    <div class="modal-close-row">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-emoji-wrap">
+        <div class="modal-emoji-circle" id="mEmoji"></div>
+      </div>
+      <div class="modal-code-wrap"><span class="modal-code" id="mCode"></span></div>
+      <div class="modal-name" id="mName"></div>
+      <div class="modal-cat"  id="mCat"></div>
+      <hr class="modal-divider">
+      <div id="mSizeSection">
+        <div class="modal-sec-label" id="mSizeLabel">Talle</div>
+        <div class="modal-size-pills" id="mSizePills"></div>
+      </div>
+      <div class="qty-row">
+        <span class="qty-row-label">Cantidad</span>
+        <div class="qty-ctrl">
+          <button class="qty-ctrl-btn" onclick="changeModalQty(-1)">−</button>
+          <input class="qty-ctrl-input" id="mQtyInput" type="number" value="1" min="1" max="99">
+          <button class="qty-ctrl-btn" onclick="changeModalQty(+1)">+</button>
+        </div>
+      </div>
+      <button class="modal-add-btn" id="mAddBtn" onclick="addFromModal()">
+        <span id="mAddText">Agregar al carrito</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── FOOTER ────────────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-logo-wrap">
+    <svg viewBox="0 0 240 90" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="43" cy="36" r="30" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2.8"/>
+      <text x="43" y="52" text-anchor="middle" font-family="Georgia,serif" font-size="42" font-weight="bold" fill="rgba(255,255,255,.85)">A</text>
+      <text x="90" y="55" text-anchor="start" font-family="Georgia,serif" font-size="36" font-weight="bold" fill="rgba(255,255,255,.85)">Adher</text>
+      <text x="147" y="74" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="rgba(255,255,255,.45)" letter-spacing="4">neo</text>
+    </svg>
+  </div>
+  <div class="footer-links-row">
+    <a href="landing.html">Inicio</a>
+    <a href="productos.html">Catálogo</a>
+    <a href="pedido.html">Realizar Pedido</a>
+  </div>
+  <div>© 2024 AdherNeo · La Lonja, Pilar, Buenos Aires</div>
+</footer>
+
+<script>
+// ─── CATALOG ──────────────────────────────────────────────────────────────────
+const CAT_ICONS = {
+  rodilleras:      `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3L12 13"/><circle cx="13.5" cy="16" r="4"/><path d="M15 20L17 30"/><line x1="7" y1="13" x2="20" y2="13"/><line x1="8.5" y1="20" x2="21.5" y2="20"/></svg>`,
+  tobilleras:      `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3L12 17Q11 22 8 25H24Q21 22 19 17L18 3Z"/><line x1="8" y1="21" x2="24" y2="21"/></svg>`,
+  munequeras:      `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="18" width="18" height="8" rx="3"/><line x1="11" y1="18" x2="10" y2="10"/><line x1="15" y1="18" x2="14.5" y2="8"/><line x1="18" y1="18" x2="18" y2="9"/><line x1="21" y1="18" x2="22" y2="11"/></svg>`,
+  coderas:         `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4L16 14L24 22"/><circle cx="16" cy="15" r="4"/><line x1="9" y1="12" x2="22" y2="12"/><line x1="12" y1="19" x2="25" y2="19"/></svg>`,
+  fajas:           `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="26" height="12" rx="6"/><line x1="3" y1="16" x2="29" y2="16"/><line x1="22" y1="10" x2="24" y2="22"/></svg>`,
+  inmovilizadores: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="11" y="2" width="10" height="28" rx="3"/><line x1="11" y1="9" x2="21" y2="9"/><line x1="11" y1="15" x2="21" y2="15"/><line x1="11" y1="21" x2="21" y2="21"/></svg>`,
+  otros:           `<svg viewBox="0 0 32 32" fill="currentColor"><rect x="13" y="4" width="6" height="24" rx="2"/><rect x="4" y="13" width="24" height="6" rx="2"/></svg>`,
+};
+
+const CATEGORIES = [
+  { id:"all",             label:"Todos" },
+  { id:"rodilleras",      label:"Rodilleras" },
+  { id:"tobilleras",      label:"Tobilleras" },
+  { id:"munequeras",      label:"Muñequeras" },
+  { id:"coderas",         label:"Coderas" },
+  { id:"fajas",           label:"Fajas & Espalda" },
+  { id:"inmovilizadores", label:"Inmovilizadores" },
+  { id:"otros",           label:"Otros" },
+];
+const CAT_LABELS = { rodilleras:"Rodilleras", tobilleras:"Tobilleras", munequeras:"Muñequeras", coderas:"Coderas", fajas:"Fajas & Espalda", inmovilizadores:"Inmovilizadores", otros:"Otros" };
+
+const CATALOG = [
+  // RODILLERAS
+  { id:"000A",  code:"000A",   name:"Rodillera Orificio Abierta Universal",           cat:"rodilleras",      emoji:"🦵", variants:["CORTA","LARGA"] },
+  { id:"01",    code:"01",     name:"Rodillera Tubular Lisa",                         cat:"rodilleras",      emoji:"🦵", sizes:[1,2,3,4,5] },
+  { id:"02",    code:"02",     name:"Rodillera Tubular Orificio",                     cat:"rodilleras",      emoji:"🦵", sizes:[1,2,3,4,5] },
+  { id:"04",    code:"04",     name:"Rodillera Orificio y Velcro",                    cat:"rodilleras",      emoji:"🦵", sizes:[1,2,3,4,5] },
+  { id:"04A",   code:"04A",    name:"Rodillera Orificio y Velcro Abierta",            cat:"rodilleras",      emoji:"🦵", sizes:[1,2,3,4,5] },
+  { id:"05",    code:"05",     name:"Rodillera Orificio Velcro Flejes Laterales",     cat:"rodilleras",      emoji:"🦵", sizes:[1,2,3,4,5] },
+  { id:"05A",   code:"05A",    name:"Rodillera Velcro Flejes Lat. Abierta",           cat:"rodilleras",      emoji:"🦵", sizes:[1,2,3,4,5] },
+  { id:"06",    code:"06",     name:"Rodillera Orificio Velcro Monocentrica",         cat:"rodilleras",      emoji:"🦵", sizes:[1,2,3,4,5] },
+  { id:"06A",   code:"06A",    name:"Rodillera Velcro Monocentrica Abierta",          cat:"rodilleras",      emoji:"🦵", sizes:[1,2,3,4,5] },
+  { id:"120",   code:"120",    name:"Suspensor Bajo Rodilla",                         cat:"rodilleras",      emoji:"🦵", sizes:[1,2,3] },
+  { id:"121D",  code:"121",    name:"Suspensor Sobre Rodilla Derecho",                cat:"rodilleras",      emoji:"🦵", sizes:[1,2,3] },
+  { id:"121I",  code:"121",    name:"Suspensor Sobre Rodilla Izquierdo",              cat:"rodilleras",      emoji:"🦵", sizes:[1,2,3] },
+  { id:"134",   code:"134",    name:"Cincha Rotuliana",                               cat:"rodilleras",      emoji:"🦵", sizes:[1,2,3] },
+  { id:"015",   code:"015",    name:"Muslera",                                        cat:"rodilleras",      emoji:"🦵", sizes:[1,2,3,4,5] },
+  // TOBILLERAS
+  { id:"030",   code:"030",    name:"Tobillera Corta",                                cat:"tobilleras",      emoji:"🦶", sizes:[1,2,3,4] },
+  { id:"031",   code:"031",    name:"Tobillera Larga",                                cat:"tobilleras",      emoji:"🦶", sizes:[1,2,3,4] },
+  { id:"031A",  code:"031A",   name:"Tobillera Larga Abierta",                        cat:"tobilleras",      emoji:"🦶", sizes:[1,2,3,4] },
+  { id:"033",   code:"033",    name:"Tobillera Ajuste en 8",                          cat:"tobilleras",      emoji:"🦶", sizes:[1,2,3,4] },
+  { id:"034A",  code:"034A",   name:"Tobillera Ballena y Cordón",                     cat:"tobilleras",      emoji:"🦶", sizes:[1,2,3,4] },
+  { id:"036",   code:"036",    name:"Inmovilizador de Tobillo",                       cat:"tobilleras",      emoji:"🦶", sizes:[1,2,3,4] },
+  { id:"055",   code:"055",    name:"Gemelera",                                       cat:"tobilleras",      emoji:"🦶", sizes:[1,2,3,4,5] },
+  { id:"039D",  code:"039",    name:"Corrector de Juanetes Derecho",                  cat:"tobilleras",      emoji:"🦶", sizes:[1,2] },
+  { id:"039I",  code:"039",    name:"Corrector de Juanetes Izquierdo",                cat:"tobilleras",      emoji:"🦶", sizes:[1,2] },
+  // MUÑEQUERAS
+  { id:"040",   code:"040",    name:"Muñequera con Velcro",                           cat:"munequeras",      emoji:"🤲", sizes:[0,1,2,3] },
+  { id:"041",   code:"041",    name:"Muñequera Boomerang con Pulgar",                 cat:"munequeras",      emoji:"🤲", sizes:[0,1,2,3] },
+  { id:"042",   code:"042",    name:"Muñequera Boomerang con Fleje",                  cat:"munequeras",      emoji:"🤲", sizes:[0,1,2,3] },
+  { id:"043",   code:"043",    name:"Muñequera Dedo Libre",                           cat:"munequeras",      emoji:"🤲", sizes:[0,1,2,3] },
+  { id:"045D",  code:"045",    name:"Inmovilizador Muñeca Largo Derecho",             cat:"munequeras",      emoji:"🤲", sizes:[1,2,3] },
+  { id:"045I",  code:"045",    name:"Inmovilizador Muñeca Largo Izquierdo",           cat:"munequeras",      emoji:"🤲", sizes:[1,2,3] },
+  { id:"046",   code:"046",    name:"Inmov. Muñeca con Inmov. de Pulgar",             cat:"munequeras",      emoji:"🤲", universal:true },
+  { id:"047D",  code:"047",    name:"Inmovilizador Muñeca Corto Derecho",             cat:"munequeras",      emoji:"🤲", sizes:[1,2,3] },
+  { id:"047I",  code:"047",    name:"Inmovilizador Muñeca Corto Izquierdo",           cat:"munequeras",      emoji:"🤲", sizes:[1,2,3] },
+  // CODERAS
+  { id:"050",   code:"050",    name:"Codera Larga",                                   cat:"coderas",         emoji:"💪", sizes:[1,2,3] },
+  { id:"051",   code:"051",    name:"Codera Larga con Orificio y Velcro",             cat:"coderas",         emoji:"💪", sizes:[1,2,3] },
+  { id:"052",   code:"052",    name:"Codera Anticodo-Tenista",                        cat:"coderas",         emoji:"💪", sizes:[1,2,3,4] },
+  { id:"053",   code:"053",    name:"Codera Larga con Orificio",                      cat:"coderas",         emoji:"💪", sizes:[1,2,3] },
+  // FAJAS Y ESPALDA
+  { id:"020",   code:"020",    name:"Faja Lumbar",                                    cat:"fajas",           emoji:"🏋️", sizes:[1,2,3,4,5] },
+  { id:"021",   code:"021",    name:"Faja Intercostal",                               cat:"fajas",           emoji:"🏋️", sizes:[1,2,3,4,5] },
+  { id:"022",   code:"022",    name:"Faja Lumbar con Ballenas",                       cat:"fajas",           emoji:"🏋️", sizes:[1,2,3,4,5] },
+  { id:"023",   code:"023",    name:"Faja Doble Ajuste con Ballenas",                 cat:"fajas",           emoji:"🏋️", sizes:[1,2,3,4,5] },
+  { id:"624",   code:"624",    name:"Faja Alta Compresión 24cm",                      cat:"fajas",           emoji:"🏋️", sizes:["T1","T2","T3","T4","T5"] },
+  { id:"628",   code:"628",    name:"Faja Alta Compresión 28cm",                      cat:"fajas",           emoji:"🏋️", sizes:["T1","T2","T3","T4","T5"] },
+  { id:"060",   code:"060",    name:"Calza Reductora",                                cat:"fajas",           emoji:"🏋️", sizes:[1,2,3,4] },
+  { id:"027",   code:"027",    name:"Corrector Postural de Espalda",                  cat:"fajas",           emoji:"🧍", sizes:[1,2,3] },
+  { id:"026",   code:"026",    name:"Hombrera Universal",                             cat:"fajas",           emoji:"🧍", universal:true },
+  { id:"024",   code:"024",    name:"Soporte de Clavícula (Strap)",                   cat:"fajas",           emoji:"🧍", sizes:[0,1,2,3] },
+  { id:"CABEST",code:"CABEST", name:"Cabestrillo Velpeau Vietnam",                    cat:"fajas",           emoji:"🩹", universal:true },
+  // INMOVILIZADORES
+  { id:"INM50", code:"INM.50", name:"Inmovilizador de Rodilla Velour 50cm",           cat:"inmovilizadores", emoji:"🦴", sizes:[0,1,2,3,4] },
+  { id:"INM60", code:"INM.60", name:"Inmovilizador de Rodilla Velour 60cm",           cat:"inmovilizadores", emoji:"🦴", sizes:[0,1,2,3,4] },
+  { id:"INM65", code:"INM.65", name:"Inmovilizador de Rodilla Velour 65cm",           cat:"inmovilizadores", emoji:"🦴", sizes:[0,1,2,3,4] },
+  { id:"TPANEL",code:"TPANEL", name:"Inmov. Rodilla Tripanel Velour 55cm",            cat:"inmovilizadores", emoji:"🦴", universal:true },
+  { id:"FUNDA", code:"FUNDA",  name:"Funda Bota Walker Velour 8mm",                   cat:"inmovilizadores", emoji:"🦴", sizes:[0,1,2,3,4] },
+  // OTROS
+  { id:"MASCAR",code:"MASC",   name:"Máscara Simple",                                 cat:"otros",           emoji:"😷", universal:true },
+  { id:"MASCB", code:"MASCB",  name:"Máscara con Babero",                             cat:"otros",           emoji:"😷", universal:true },
+  { id:"TAPAB", code:"TAPAB",  name:"Tapaboca",                                       cat:"otros",           emoji:"😷", universal:true },
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let currentFilter = 'all';
+let modalProduct  = null;
+let modalSize     = null;
+
+// ─── CART ─────────────────────────────────────────────────────────────────────
+function loadCart() {
+  try { return JSON.parse(localStorage.getItem('adherneo_cart') || '{"items":[]}'); }
+  catch(e) { return { items:[] }; }
+}
+function saveCart(c) { localStorage.setItem('adherneo_cart', JSON.stringify(c)); }
+function cartTotal() { return loadCart().items.reduce((s,i) => s + (i.qty||0), 0); }
+function addItemToCart(productId, code, name, cat, emoji, size, qty) {
+  const cart = loadCart();
+  const key = `${productId}||${size}`;
+  const ex  = cart.items.find(i => i.key === key);
+  if (ex) { ex.qty += qty; } else { cart.items.push({ key, productId, code, name, cat, emoji, size, qty }); }
+  saveCart(cart);
+  updateCartUI();
+}
+function updateCartUI() {
+  const n = cartTotal();
+  const badge = document.getElementById('cartBadge');
+  const navEl = document.getElementById('cartNav');
+  const btn   = document.getElementById('cartStickyBtn');
+  if (badge) badge.textContent = n;
+  if (navEl) navEl.textContent = `Carrito (${n})`;
+  if (btn)   btn.classList.toggle('has-items', n > 0);
+}
+
+// ─── CARD STATE (per-card size selection) ─────────────────────────────────────
+const cardSizes = {};  // productId → selected size string or null
+function selectCardSize(productId, size, btn) {
+  if (cardSizes[productId] === size) {
+    cardSizes[productId] = null;
+    btn.classList.remove('selected');
+  } else {
+    cardSizes[productId] = size;
+    btn.closest('.card-size-pills').querySelectorAll('.card-size-pill').forEach(p => p.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+}
+function changeCardQty(productId, delta) {
+  const inp = document.getElementById(`cq-${productId}`);
+  if (!inp) return;
+  inp.value = Math.max(1, Math.min(99, (parseInt(inp.value)||1) + delta));
+}
+function addFromCard(productId) {
+  const p = CATALOG.find(x => x.id === productId);
+  if (!p) return;
+  let size;
+  if (p.universal && !p.variants) {
+    size = 'Universal';
+  } else {
+    size = cardSizes[productId] || null;
+    if (!size) {
+      const wrap = document.querySelector(`[data-id="${productId}"] .card-size-pills`);
+      if (wrap) { wrap.classList.remove('shake'); void wrap.offsetWidth; wrap.classList.add('shake'); }
+      return;
+    }
+  }
+  const qty = parseInt(document.getElementById(`cq-${productId}`)?.value) || 1;
+  addItemToCart(p.id, p.code, p.name, p.cat, p.emoji, size, qty);
+  const btn = document.querySelector(`[data-id="${productId}"] .card-add-btn`);
+  if (btn) {
+    btn.classList.add('added'); btn.textContent = '✓ Agregado';
+    setTimeout(() => { btn.classList.remove('added'); btn.textContent = 'Agregar'; }, 1400);
+  }
+  const inp = document.getElementById(`cq-${productId}`);
+  if (inp) inp.value = 1;
+  cardSizes[productId] = null;
+  document.querySelector(`[data-id="${productId}"] .card-size-pills`)?.querySelectorAll('.card-size-pill').forEach(p => p.classList.remove('selected'));
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function openModal(id) {
+  const p = CATALOG.find(x => x.id === id);
+  if (!p) return;
+  modalProduct = p; modalSize = null;
+
+  document.getElementById('mEmoji').innerHTML = p.img
+    ? `<img src="${p.img}" alt="${p.name}">`
+    : (CAT_ICONS[p.cat] || '');
+  document.getElementById('mCode').textContent  = p.code;
+  document.getElementById('mName').textContent  = p.name;
+  document.getElementById('mCat').textContent   = CAT_LABELS[p.cat] || p.cat;
+  document.getElementById('mQtyInput').value    = 1;
+
+  const secEl    = document.getElementById('mSizeSection');
+  const labelEl  = document.getElementById('mSizeLabel');
+  const pillsEl  = document.getElementById('mSizePills');
+
+  if (p.universal && !p.variants) {
+    secEl.style.display = 'none'; modalSize = 'Universal';
+  } else if (p.variants) {
+    secEl.style.display = ''; labelEl.textContent = 'Variante';
+    pillsEl.innerHTML = p.variants.map(v =>
+      `<button class="modal-size-pill" onclick="selectModalSize('${v}',this)">${v}</button>`
+    ).join('');
+  } else {
+    secEl.style.display = ''; labelEl.textContent = 'Talle';
+    pillsEl.innerHTML = p.sizes.map(s =>
+      `<button class="modal-size-pill" onclick="selectModalSize('T${s}',this)">T${s}</button>`
+    ).join('');
+  }
+
+  const btn = document.getElementById('mAddBtn');
+  btn.classList.remove('added');
+  document.getElementById('mAddText').textContent = 'Agregar al carrito';
+
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  modalProduct = null; modalSize = null;
+}
+function handleOverlayClick(e) { if (e.target.id === 'modalOverlay') closeModal(); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function selectModalSize(val, btn) {
+  modalSize = val;
+  document.querySelectorAll('.modal-size-pill').forEach(p => p.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+function changeModalQty(delta) {
+  const inp = document.getElementById('mQtyInput');
+  inp.value = Math.max(1, Math.min(99, (parseInt(inp.value)||1) + delta));
+}
+function addFromModal() {
+  const p = modalProduct; if (!p) return;
+  if ((p.sizes || p.variants) && !modalSize) {
+    const pills = document.getElementById('mSizePills');
+    pills.classList.remove('shake'); void pills.offsetWidth; pills.classList.add('shake');
+    return;
+  }
+  const qty = parseInt(document.getElementById('mQtyInput').value) || 1;
+  addItemToCart(p.id, p.code, p.name, p.cat, p.emoji, modalSize || 'Universal', qty);
+  const btn = document.getElementById('mAddBtn');
+  btn.classList.add('added');
+  document.getElementById('mAddText').textContent = '✓ Agregado al carrito';
+  setTimeout(() => { closeModal(); }, 1100);
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function sizeControlHtml(p) {
+  if (p.universal && !p.variants) {
+    return `<span class="card-universal-badge">Universal</span>`;
+  }
+  if (p.variants) {
+    return `<div class="card-sel-label">Variante</div>
+    <div class="card-size-pills">
+      ${p.variants.map(v => `<button class="card-size-pill" onclick="selectCardSize('${p.id}','${v}',this)">${v}</button>`).join('')}
+    </div>`;
+  }
+  return `<div class="card-sel-label">Talle</div>
+  <div class="card-size-pills">
+    ${p.sizes.map(s => `<button class="card-size-pill" onclick="selectCardSize('${p.id}','T${s}',this)">T${s}</button>`).join('')}
+  </div>`;
+}
+
+function renderFilters() {
+  document.getElementById('filterPills').innerHTML = CATEGORIES.map(c =>
+    `<button class="filter-pill${currentFilter===c.id?' active':''}" onclick="setFilter('${c.id}')">${c.label}</button>`
+  ).join('');
+}
+function setFilter(id) { currentFilter = id; renderFilters(); applyFilters(); }
+
+function applyFilters() {
+  const q    = document.getElementById('searchInput').value.toLowerCase().trim();
+  const sort = document.getElementById('sortSelect').value;
+  let list = CATALOG.filter(p => {
+    const matchCat = currentFilter === 'all' || p.cat === currentFilter;
+    const matchQ   = !q || p.code.toLowerCase().includes(q) || p.name.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  if (sort === 'name') list.sort((a,b) => a.name.localeCompare(b.name,'es'));
+  else if (sort === 'cat') list.sort((a,b) => a.cat.localeCompare(b.cat) || a.code.localeCompare(b.code));
+  else list.sort((a,b) => a.code.localeCompare(b.code,undefined,{numeric:true}));
+
+  document.getElementById('resultsCount').textContent =
+    list.length === CATALOG.length ? `${CATALOG.length} productos` : `${list.length} / ${CATALOG.length}`;
+  renderGrid(list);
+}
+
+function renderGrid(list) {
+  const grid = document.getElementById('productsGrid');
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>Sin resultados</h3><p>Probá con otro término o quitá los filtros.</p></div>`;
+    return;
+  }
+  grid.innerHTML = list.map(p => `
+    <div class="product-card" data-id="${p.id}">
+      <div class="card-emoji-wrap" onclick="openModal('${p.id}')" title="Vista rápida">
+        <div class="card-emoji-circle">${p.img ? `<img src="${p.img}" alt="${p.name}" style="width:52px;height:52px;object-fit:cover;border-radius:10px;">` : (CAT_ICONS[p.cat] || '')}</div>
+        <div class="preview-hint">Vista rápida</div>
+      </div>
+      <div class="card-code-bar"><span class="card-code">${p.code}</span></div>
+      <div class="card-body">
+        <div class="card-name">${p.name}</div>
+        <div class="card-cat">${CAT_LABELS[p.cat]||p.cat}</div>
+        ${sizeControlHtml(p)}
+        <div class="card-footer-row">
+          <div class="card-qty">
+            <button class="card-qty-btn" onclick="changeCardQty('${p.id}',-1)">−</button>
+            <input class="card-qty-input" id="cq-${p.id}" type="number" value="1" min="1" max="99">
+            <button class="card-qty-btn" onclick="changeCardQty('${p.id}',+1)">+</button>
+          </div>
+          <button class="card-add-btn" onclick="addFromCard('${p.id}')">Agregar</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── THEME ────────────────────────────────────────────────────────────────────
+const root = document.documentElement;
+const toggle = document.getElementById('darkToggle');
+let isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+function updateNavLogo(dark) {
+  const c = dark ? 'rgba(255,255,255,.9)' : '#12264e';
+  const s = dark ? 'rgba(255,255,255,.5)' : '#12264e';
+  document.querySelector('#logo-a')?.setAttribute('fill',c);
+  document.querySelector('#logo-adher')?.setAttribute('fill',c);
+  document.querySelector('#logo-circle')?.setAttribute('stroke',c);
+  document.querySelector('#logo-circle')?.setAttribute('fill','none');
+  document.querySelector('#logo-neo')?.setAttribute('fill',s);
+}
+function applyTheme(dark) {
+  isDark = dark;
+  root.setAttribute('data-theme', dark ? 'dark' : 'light');
+  toggle.textContent = dark ? '☀️' : '🌙';
+  updateNavLogo(dark);
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+}
+const savedTheme = localStorage.getItem('theme');
+applyTheme(savedTheme ? savedTheme === 'dark' : isDark);
+toggle.addEventListener('click', () => applyTheme(!isDark));
+
+// ─── BURGER ───────────────────────────────────────────────────────────────────
+document.getElementById('burger').addEventListener('click', () =>
+  document.getElementById('navbar').classList.toggle('mobile-open'));
+document.querySelectorAll('.nav-link').forEach(l =>
+  l.addEventListener('click', () => document.getElementById('navbar').classList.remove('mobile-open')));
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+const urlParams = new URLSearchParams(window.location.search);
+const filterParam = urlParams.get('filter');
+if (filterParam && CATEGORIES.find(c => c.id === filterParam)) currentFilter = filterParam;
+
+renderFilters();
+applyFilters();
+updateCartUI();
+window.addEventListener('storage', updateCartUI);
+</script>
+</body>
+</html>

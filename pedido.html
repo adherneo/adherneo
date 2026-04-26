@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmar Pedido — AdherNeo</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<!-- EmailJS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<style>
+/* ─── TOKENS ─────────────────────────────────────────────────────────────────── */
+:root {
+  --navy:      #12264e; --navy-deep: #0d1e3d;
+  --blue:      #2563be; --blue-light: #3b82d4;
+  --sky:       #e8f0ff; --sky-mid: #d0e0f8;
+  --green:     #1a7c4f; --green-bg: #e8f5ee;
+  --red:       #c0392b; --red-bg: #fdf0ee;
+  --bg:        #f5f8ff; --surface: #ffffff;
+  --border:    #d8e4f5; --text: #1a2540;
+  --text-mid:  #4a5978; --text-soft: #8494b0;
+  --nav-h: 72px; --radius: 12px;
+  --shadow: 0 4px 24px rgba(18,38,78,.10);
+  --shadow-sm: 0 2px 10px rgba(18,38,78,.07);
+}
+[data-theme="dark"] {
+  --bg:       #0b1527; --surface: #111f38; --border: #1e3660;
+  --text:     #e4ecff; --text-mid: #9db3d4; --text-soft: #566e96;
+  --sky:      #162540; --sky-mid: #1c2f50;
+  --green-bg: #0f2e1e; --red-bg: #2a100e;
+  --shadow: 0 4px 24px rgba(0,0,0,.4); --shadow-sm: 0 2px 10px rgba(0,0,0,.3);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg); color: var(--text);
+  padding-top: var(--nav-h);
+  transition: background .3s, color .3s; min-height: 100vh;
+}
+a { text-decoration: none; color: inherit; }
+
+/* ─── NAVBAR ─────────────────────────────────────────────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  height: var(--nav-h); background: var(--surface); border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm); display: flex; align-items: center; padding: 0 40px; gap: 32px;
+  transition: background .3s, border-color .3s;
+}
+.nav-logo { flex-shrink: 0; display: flex; align-items: center; }
+.nav-logo svg { height: 48px; width: auto; }
+.nav-links { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.nav-link { padding: 8px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--text-mid); transition: background .15s, color .15s; }
+.nav-link:hover { background: var(--sky); color: var(--navy); }
+[data-theme="dark"] .nav-link:hover { color: var(--blue-light); }
+.nav-cta { padding: 9px 20px; background: var(--navy); color: #fff !important; border-radius: 9px; font-size: 14px; font-weight: 700; transition: background .15s; margin-left: 8px; white-space: nowrap; }
+.nav-cta:hover { background: var(--navy-deep); }
+.nav-cta.current { background: var(--sky-mid); color: var(--navy) !important; cursor: default; }
+[data-theme="dark"] .nav-cta.current { background: var(--sky); color: var(--text) !important; }
+.dark-toggle { margin-left: 8px; width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 8px; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: background .15s; flex-shrink: 0; }
+.dark-toggle:hover { background: var(--sky); }
+.nav-burger { display: none; margin-left: auto; background: none; border: none; cursor: pointer; width: 36px; height: 36px; flex-direction: column; justify-content: center; gap: 5px; padding: 4px; }
+.nav-burger span { display: block; height: 2px; width: 100%; background: var(--text); border-radius: 2px; }
+nav.mobile-open .nav-links { display: flex; flex-direction: column; position: fixed; top: var(--nav-h); left: 0; right: 0; background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 20px 24px; gap: 4px; z-index: 999; box-shadow: var(--shadow); }
+
+/* ─── MAIN ───────────────────────────────────────────────────────────────────── */
+.pedido-main { max-width: 1100px; margin: 0 auto; padding: 36px 40px 80px; }
+.page-title { font-family: Georgia,serif; font-size: 26px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+[data-theme="dark"] .page-title { color: var(--text); }
+.page-subtitle { font-size: 14px; color: var(--text-soft); margin-bottom: 32px; }
+
+/* ─── TWO-COLUMN LAYOUT ──────────────────────────────────────────────────────── */
+.pedido-grid { display: grid; grid-template-columns: 1fr 400px; gap: 28px; align-items: start; }
+
+/* ─── PANEL ──────────────────────────────────────────────────────────────────── */
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.panel-header { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.panel-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.panel-count { font-size: 13px; color: var(--text-soft); }
+.panel-body { padding: 16px 22px 20px; }
+
+/* ─── CART ITEMS ─────────────────────────────────────────────────────────────── */
+.cart-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.cart-item:last-child { border-bottom: none; }
+.ci-emoji {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg,var(--sky),var(--sky-mid));
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; color: var(--text);
+}
+.ci-emoji svg { width: 22px; height: 22px; }
+.ci-info { flex: 1; min-width: 0; }
+.ci-code {
+  font-family: 'Courier New',monospace; font-size: 11px; font-weight: 700;
+  color: var(--blue); background: var(--sky); border-radius: 4px;
+  padding: 1px 6px; display: inline-block; margin-bottom: 3px;
+}
+[data-theme="dark"] .ci-code { color: var(--blue-light); }
+.ci-name { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ci-size { font-size: 11px; color: var(--text-soft); margin-top: 2px; }
+.ci-qty-ctrl { display: flex; align-items: center; border: 1.5px solid var(--border); border-radius: 7px; overflow: hidden; background: var(--bg); flex-shrink: 0; }
+.ci-qty-btn { width: 26px; height: 28px; background: none; border: none; cursor: pointer; font-size: 15px; color: var(--text-mid); display: flex; align-items: center; justify-content: center; transition: background .12s; }
+.ci-qty-btn:hover { background: var(--sky); color: var(--navy); }
+.ci-qty-num { width: 30px; text-align: center; font-size: 13px; font-weight: 700; color: var(--text); border-left: 1px solid var(--border); border-right: 1px solid var(--border); height: 28px; line-height: 28px; background: var(--bg); }
+.ci-remove { width: 28px; height: 28px; background: none; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text-soft); display: flex; align-items: center; justify-content: center; transition: all .15s; flex-shrink: 0; }
+.ci-remove:hover { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+.cart-empty-inline { text-align: center; padding: 40px 20px; color: var(--text-soft); font-size: 14px; }
+
+/* ─── CART SUMMARY ───────────────────────────────────────────────────────────── */
+.cart-summary { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.summary-label { font-size: 13px; color: var(--text-mid); }
+.summary-value { font-size: 15px; font-weight: 700; color: var(--text); }
+.continue-link { display: inline-flex; align-items: center; gap: 5px; margin-top: 14px; font-size: 13px; font-weight: 500; color: var(--text-mid); transition: color .15s; }
+.continue-link:hover { color: var(--navy); }
+[data-theme="dark"] .continue-link:hover { color: var(--blue-light); }
+
+/* ─── FORM ───────────────────────────────────────────────────────────────────── */
+.form-field { margin-bottom: 16px; }
+.form-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 6px; letter-spacing: .02em; }
+.form-field input,
+.form-field textarea {
+  width: 100%; padding: 10px 12px;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 14px; color: var(--text); background: var(--bg);
+  outline: none; transition: border-color .15s, background .15s;
+  font-family: inherit;
+}
+.form-field input:focus,
+.form-field textarea:focus { border-color: var(--blue); background: var(--surface); }
+.form-field input::placeholder,
+.form-field textarea::placeholder { color: var(--text-soft); }
+.form-field textarea { height: 80px; resize: vertical; }
+.form-field.required label::after { content: ' *'; color: var(--red); }
+
+.submit-btn {
+  width: 100%; padding: 14px; border: none; border-radius: 10px;
+  background: var(--navy); color: #fff; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: background .15s, transform .1s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 4px;
+}
+.submit-btn:hover:not(:disabled) { background: var(--navy-deep); transform: translateY(-1px); }
+.submit-btn:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+.submit-btn.sending { background: var(--blue); }
+
+.form-note { font-size: 11px; color: var(--text-soft); text-align: center; margin-top: 10px; line-height: 1.6; }
+.error-msg { margin-top: 10px; padding: 10px 14px; background: var(--red-bg); border: 1px solid rgba(192,57,43,.25); border-radius: 8px; font-size: 13px; color: var(--red); display: none; }
+.error-msg.show { display: block; }
+
+/* ─── EMPTY STATE ────────────────────────────────────────────────────────────── */
+#emptyState {
+  text-align: center; padding: 100px 20px; display: none;
+}
+#emptyState.show { display: block; }
+.empty-icon { font-size: 56px; margin-bottom: 20px; }
+.empty-title { font-family: Georgia,serif; font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+.empty-desc { font-size: 15px; color: var(--text-mid); margin-bottom: 28px; }
+.btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--navy); color: #fff; border-radius: 10px; font-size: 14px; font-weight: 700; transition: background .15s; }
+.btn-primary:hover { background: var(--navy-deep); }
+
+/* ─── SUCCESS STATE ──────────────────────────────────────────────────────────── */
+#successState { display: none; }
+#successState.show { display: block; }
+.success-card {
+  max-width: 560px; margin: 60px auto; text-align: center;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 52px 40px;
+  box-shadow: var(--shadow);
+}
+.success-check {
+  width: 72px; height: 72px; background: var(--green-bg);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 22px; font-size: 34px; color: var(--green);
+}
+.success-title { font-family: Georgia,serif; font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
+.success-desc { font-size: 15px; color: var(--text-mid); line-height: 1.7; margin-bottom: 28px; }
+.success-summary {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 18px; margin-bottom: 28px;
+  text-align: left; font-size: 13px; color: var(--text-mid); line-height: 1.8;
+  max-height: 180px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;
+}
+.success-summary::-webkit-scrollbar { display: none; }
+.success-summary strong { color: var(--text); }
+.success-actions { display: flex; gap: 12px; justify-content: center; }
+.btn-secondary { padding: 10px 22px; background: var(--bg); color: var(--text); border: 1.5px solid var(--border); border-radius: 9px; font-size: 14px; font-weight: 600; transition: background .15s; }
+.btn-secondary:hover { background: var(--sky); }
+
+/* ─── FOOTER ─────────────────────────────────────────────────────────────────── */
+footer { background: var(--navy); color: rgba(255,255,255,.7); padding: 32px 40px; text-align: center; font-size: 13px; }
+footer a { color: rgba(255,255,255,.6); }
+footer a:hover { color: #fff; }
+.footer-logo-wrap { margin-bottom: 10px; }
+.footer-logo-wrap svg { height: 40px; width: auto; display: inline-block; }
+.footer-links-row { display: flex; gap: 20px; justify-content: center; margin: 10px 0; flex-wrap: wrap; }
+
+/* ─── RESPONSIVE ──────────────────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .nav-burger { display: flex; }
+  .pedido-main { padding: 24px 20px 60px; }
+  .pedido-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── NAVBAR ──────────────────────────────────────────────────────────────── -->
+<nav id="navbar">
+  <a href="landing.html" class="nav-logo">
+    <svg viewBox="0 0 240 90" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="43" cy="36" r="30" fill="none" stroke="#12264e" stroke-width="2.8" id="logo-circle"/>
+      <text x="43" y="52" text-anchor="middle" font-family="Georgia,serif" font-size="42" font-weight="bold" fill="#12264e" id="logo-a">A</text>
+      <text x="90" y="55" text-anchor="start" font-family="Georgia,serif" font-size="36" font-weight="bold" fill="#12264e" id="logo-adher">Adher</text>
+      <text x="147" y="74" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#12264e" letter-spacing="4" id="logo-neo">neo</text>
+    </svg>
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a href="landing.html"    class="nav-link">Inicio</a>
+    <a href="productos.html"  class="nav-link">Catálogo</a>
+    <span class="nav-cta current" id="cartNav">Carrito (0)</span>
+  </div>
+  <button class="dark-toggle" id="darkToggle" aria-label="Cambiar tema">🌙</button>
+  <button class="nav-burger" id="burger">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ─── MAIN ─────────────────────────────────────────────────────────────────── -->
+<main class="pedido-main">
+
+  <!-- VACÍO -->
+  <div id="emptyState">
+    <div class="empty-icon">🛒</div>
+    <div class="empty-title">Tu carrito está vacío</div>
+    <div class="empty-desc">Agregá productos desde el catálogo para continuar.</div>
+    <a href="productos.html" class="btn-primary">Ver catálogo →</a>
+  </div>
+
+  <!-- PEDIDO -->
+  <div id="pedidoState" style="display:none">
+    <h1 class="page-title">Confirmar Pedido</h1>
+    <p class="page-subtitle">Revisá tu selección y completá tus datos para enviarnos el pedido.</p>
+    <div class="pedido-grid">
+
+      <!-- LEFT: Carrito -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Resumen del pedido</span>
+          <span class="panel-count" id="itemCount"></span>
+        </div>
+        <div class="panel-body">
+          <div id="cartItemsList"></div>
+          <div class="cart-summary">
+            <span class="summary-label">Total de artículos</span>
+            <span class="summary-value" id="totalQty">0</span>
+          </div>
+          <a href="productos.html" class="continue-link">← Seguir agregando</a>
+        </div>
+      </div>
+
+      <!-- RIGHT: Formulario -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Tus datos</span>
+        </div>
+        <div class="panel-body">
+          <form id="orderForm" onsubmit="submitOrder(event)" novalidate>
+            <div class="form-field required">
+              <label for="customerName">Nombre completo</label>
+              <input type="text" id="customerName" placeholder="Juan Pérez" required>
+            </div>
+            <div class="form-field required">
+              <label for="customerEmail">Email</label>
+              <input type="email" id="customerEmail" placeholder="juan@ejemplo.com" required>
+            </div>
+            <div class="form-field">
+              <label for="customerPhone">Teléfono (opcional)</label>
+              <input type="tel" id="customerPhone" placeholder="+54 11 1234-5678">
+            </div>
+            <div class="form-field">
+              <label for="customerNotes">Notas adicionales (opcional)</label>
+              <textarea id="customerNotes" placeholder="Consultas, preferencias de entrega…"></textarea>
+            </div>
+            <button type="submit" class="submit-btn" id="submitBtn">
+              <span id="submitText">Confirmar Pedido</span>
+            </button>
+            <div class="error-msg" id="errorMsg"></div>
+            <p class="form-note">Tu pedido se envía a <strong>adherneo@hotmail.com</strong>.<br>Te responderemos a la brevedad.</p>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ÉXITO -->
+  <div id="successState">
+    <div class="success-card">
+      <div class="success-check">✓</div>
+      <div class="success-title">¡Pedido enviado!</div>
+      <div class="success-desc" id="successDesc"></div>
+      <div class="success-summary" id="successSummary"></div>
+      <div class="success-actions">
+        <a href="productos.html" class="btn-secondary">Seguir comprando</a>
+        <a href="landing.html" class="btn-primary">Ir al inicio</a>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ─── FOOTER ────────────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-logo-wrap">
+    <svg viewBox="0 0 240 90" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="43" cy="36" r="30" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2.8"/>
+      <text x="43" y="52" text-anchor="middle" font-family="Georgia,serif" font-size="42" font-weight="bold" fill="rgba(255,255,255,.85)">A</text>
+      <text x="90" y="55" text-anchor="start" font-family="Georgia,serif" font-size="36" font-weight="bold" fill="rgba(255,255,255,.85)">Adher</text>
+      <text x="147" y="74" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="rgba(255,255,255,.45)" letter-spacing="4">neo</text>
+    </svg>
+  </div>
+  <div class="footer-links-row">
+    <a href="landing.html">Inicio</a>
+    <a href="productos.html">Catálogo</a>
+  </div>
+  <div>© 2024 AdherNeo · La Lonja, Pilar, Buenos Aires</div>
+</footer>
+
+<script>
+// ─── CATEGORY ICONS ──────────────────────────────────────────────────────────
+const CAT_ICONS = {
+  rodilleras:      `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3L12 13"/><circle cx="13.5" cy="16" r="4"/><path d="M15 20L17 30"/><line x1="7" y1="13" x2="20" y2="13"/><line x1="8.5" y1="20" x2="21.5" y2="20"/></svg>`,
+  tobilleras:      `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3L12 17Q11 22 8 25H24Q21 22 19 17L18 3Z"/><line x1="8" y1="21" x2="24" y2="21"/></svg>`,
+  munequeras:      `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="18" width="18" height="8" rx="3"/><line x1="11" y1="18" x2="10" y2="10"/><line x1="15" y1="18" x2="14.5" y2="8"/><line x1="18" y1="18" x2="18" y2="9"/><line x1="21" y1="18" x2="22" y2="11"/></svg>`,
+  coderas:         `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4L16 14L24 22"/><circle cx="16" cy="15" r="4"/><line x1="9" y1="12" x2="22" y2="12"/><line x1="12" y1="19" x2="25" y2="19"/></svg>`,
+  fajas:           `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="26" height="12" rx="6"/><line x1="3" y1="16" x2="29" y2="16"/><line x1="22" y1="10" x2="24" y2="22"/></svg>`,
+  inmovilizadores: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="11" y="2" width="10" height="28" rx="3"/><line x1="11" y1="9" x2="21" y2="9"/><line x1="11" y1="15" x2="21" y2="15"/><line x1="11" y1="21" x2="21" y2="21"/></svg>`,
+  otros:           `<svg viewBox="0 0 32 32" fill="currentColor"><rect x="13" y="4" width="6" height="24" rx="2"/><rect x="4" y="13" width="24" height="6" rx="2"/></svg>`,
+};
+
+// ─── EMAILJS CONFIG ───────────────────────────────────────────────────────────
+// PASOS PARA CONFIGURAR:
+// 1. Creá cuenta gratis en https://www.emailjs.com
+// 2. Email Services → Add New Service → Outlook/Hotmail → conectá adherneo@hotmail.com
+//    Copiá el "Service ID" y pegalo en EJS_SERVICE_ID
+// 3. Email Templates → Create New Template:
+//      To email:  adherneo@hotmail.com  (fijo)
+//      Subject:   {{subject}}
+//      Body:      {{body}}
+//    Copiá el "Template ID" y pegalo en EJS_TEMPLATE_ID
+// 4. Account → General → Public Key → pegalo en EJS_PUBLIC_KEY
+const EJS_PUBLIC_KEY  = 'V2bRqh3q4CJXT8Cbt';
+const EJS_SERVICE_ID  = 'service_r5i4s3b';
+const EJS_TEMPLATE_ID = 'template_0h7uglo';
+
+emailjs.init(EJS_PUBLIC_KEY);
+
+// ─── CART ─────────────────────────────────────────────────────────────────────
+function loadCart() {
+  try { return JSON.parse(localStorage.getItem('adherneo_cart') || '{"items":[]}'); }
+  catch(e) { return { items:[] }; }
+}
+function saveCart(c) { localStorage.setItem('adherneo_cart', JSON.stringify(c)); }
+function cartTotal(items) { return items.reduce((s,i) => s + (i.qty||0), 0); }
+
+function changeItemQty(key, delta) {
+  const cart = loadCart();
+  const item = cart.items.find(i => i.key === key);
+  if (!item) return;
+  item.qty = Math.max(1, item.qty + delta);
+  saveCart(cart);
+  renderPage();
+}
+function removeItem(key) {
+  const cart = loadCart();
+  cart.items = cart.items.filter(i => i.key !== key);
+  saveCart(cart);
+  renderPage();
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function renderPage() {
+  const cart = loadCart();
+  const n = cartTotal(cart.items);
+
+  // Nav badge
+  const navEl = document.getElementById('cartNav');
+  if (navEl) navEl.textContent = `Carrito (${n})`;
+
+  if (!cart.items.length) {
+    document.getElementById('emptyState').classList.add('show');
+    document.getElementById('pedidoState').style.display = 'none';
+    return;
+  }
+  document.getElementById('emptyState').classList.remove('show');
+  document.getElementById('pedidoState').style.display = 'block';
+
+  document.getElementById('itemCount').textContent = `${cart.items.length} línea${cart.items.length>1?'s':''}`;
+  document.getElementById('totalQty').textContent = n;
+
+  document.getElementById('cartItemsList').innerHTML = cart.items.map(item => `
+    <div class="cart-item">
+      <div class="ci-emoji">${CAT_ICONS[item.cat] || CAT_ICONS.otros}</div>
+      <div class="ci-info">
+        <span class="ci-code">${item.code}</span>
+        <div class="ci-name">${item.name}</div>
+        <div class="ci-size">${item.size}</div>
+      </div>
+      <div class="ci-qty-ctrl">
+        <button class="ci-qty-btn" onclick="changeItemQty('${item.key}',-1)">−</button>
+        <div class="ci-qty-num">${item.qty}</div>
+        <button class="ci-qty-btn" onclick="changeItemQty('${item.key}',+1)">+</button>
+      </div>
+      <button class="ci-remove" onclick="removeItem('${item.key}')" title="Quitar">✕</button>
+    </div>
+  `).join('');
+}
+
+// ─── EMAIL FORMAT ─────────────────────────────────────────────────────────────
+function buildEmailBody(name, email, phone, notes, items) {
+  // Group by product code + name
+  const grouped = {};
+  items.forEach(item => {
+    const k = item.code + '||' + item.name;
+    if (!grouped[k]) grouped[k] = { code: item.code, name: item.name, entries: [] };
+    grouped[k].entries.push({ size: item.size, qty: item.qty });
+  });
+
+  const lines = Object.values(grouped).map(p => {
+    const sizeParts = p.entries.map(e => `${e.size} (${e.qty})`).join('  ');
+    return `- ${p.code}. ${p.name}: ${sizeParts}`;
+  });
+
+  const total = items.reduce((s,i) => s + i.qty, 0);
+
+  let body = `Nuevo pedido de ${name}\n`;
+  body += `Email: ${email}\n`;
+  if (phone) body += `Teléfono: ${phone}\n`;
+  body += `\nArtículos pedidos:\n${lines.join('\n')}\n`;
+  body += `\nTotal: ${total} artículo${total>1?'s':''}`;
+  if (notes) body += `\n\nNotas: ${notes}`;
+  return { body, lines, total };
+}
+
+// ─── SUBMIT ───────────────────────────────────────────────────────────────────
+function submitOrder(e) {
+  e.preventDefault();
+  const name  = document.getElementById('customerName').value.trim();
+  const email = document.getElementById('customerEmail').value.trim();
+  const phone = document.getElementById('customerPhone').value.trim();
+  const notes = document.getElementById('customerNotes').value.trim();
+  const cart  = loadCart();
+
+  // Validations
+  const errEl = document.getElementById('errorMsg');
+  errEl.classList.remove('show');
+  if (!name)  { showError('Por favor ingresá tu nombre.'); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showError('Por favor ingresá un email válido.'); return; }
+  if (!cart.items.length) { showError('El carrito está vacío.'); return; }
+
+  const btn  = document.getElementById('submitBtn');
+  const text = document.getElementById('submitText');
+  btn.disabled = true; btn.classList.add('sending');
+  text.textContent = 'Enviando…';
+
+  const { body, lines, total } = buildEmailBody(name, email, phone, notes, cart.items);
+
+  emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, {
+    subject:  `Nuevo Pedido - ${name}`,
+    body:     body,
+    reply_to: email,
+  })
+  .then(() => {
+    // Clear cart
+    localStorage.removeItem('adherneo_cart');
+    // Success UI
+    document.getElementById('pedidoState').style.display = 'none';
+    document.getElementById('successState').classList.add('show');
+    document.getElementById('successDesc').innerHTML =
+      `Recibimos el pedido de <strong>${name}</strong>. Te contactaremos a <strong>${email}</strong> a la brevedad.`;
+    document.getElementById('successSummary').innerHTML =
+      `<strong>Resumen:</strong><br>${lines.map(l => l.replace(/^- /,'')).join('<br>')}`;
+  })
+  .catch(err => {
+    console.error('EmailJS error:', err);
+    btn.disabled = false; btn.classList.remove('sending');
+    text.textContent = 'Confirmar Pedido';
+    showError('Hubo un error al enviar. Verificá tu conexión o intentá de nuevo.');
+  });
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg; el.classList.add('show');
+  el.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+// ─── THEME ────────────────────────────────────────────────────────────────────
+const root = document.documentElement;
+const toggle = document.getElementById('darkToggle');
+let isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+function updateNavLogo(dark) {
+  const c = dark ? 'rgba(255,255,255,.9)' : '#12264e';
+  const s = dark ? 'rgba(255,255,255,.5)' : '#12264e';
+  document.querySelector('#logo-a')?.setAttribute('fill',c);
+  document.querySelector('#logo-adher')?.setAttribute('fill',c);
+  document.querySelector('#logo-circle')?.setAttribute('stroke',c);
+  document.querySelector('#logo-circle')?.setAttribute('fill','none');
+  document.querySelector('#logo-neo')?.setAttribute('fill',s);
+}
+function applyTheme(dark) {
+  isDark = dark; root.setAttribute('data-theme', dark?'dark':'light');
+  toggle.textContent = dark ? '☀️' : '🌙'; updateNavLogo(dark);
+  localStorage.setItem('theme', dark?'dark':'light');
+}
+const st = localStorage.getItem('theme');
+applyTheme(st ? st==='dark' : isDark);
+toggle.addEventListener('click', () => applyTheme(!isDark));
+
+document.getElementById('burger').addEventListener('click', () =>
+  document.getElementById('navbar').classList.toggle('mobile-open'));
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderPage();
+window.addEventListener('storage', renderPage);
+</script>
+</body>
+</html>

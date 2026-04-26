@@ -1,0 +1,11 @@
+# Proyecto interno — no publicar
+etiquetas.html
+ETIQUETAS/
+
+# Claude Code workspace
+.claude/
+
+# Archivos temporales de Word y Windows
+~$*
+*.tmp
+Thumbs.db
