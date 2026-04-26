@@ -9,3 +9,18 @@ ETIQUETAS/
 ~$*
 *.tmp
 Thumbs.db
+
+# Node / npm
+node_modules/
+dist/
+.env
+
+# Vite
+frontend/.vite/
+frontend/dist/
+
+# NestJS
+backend/dist/
+
+# Docker
+.env.local
