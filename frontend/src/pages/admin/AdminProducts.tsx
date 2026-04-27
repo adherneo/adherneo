@@ -36,6 +36,7 @@ export default function AdminProducts() {
   const [formError, setFormError] = useState('')
   const [uploading, setUploading] = useState(false)
   const [urlInput, setUrlInput]   = useState('')
+  const [search, setSearch]       = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
   function load() {
@@ -170,8 +171,16 @@ export default function AdminProducts() {
     }
   }
 
-  const active   = products.filter((p) => p.isActive)
-  const inactive = products.filter((p) => !p.isActive)
+  const q = search.trim().toLowerCase()
+  const filtered = q
+    ? products.filter((p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.code.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
+      )
+    : products
+  const active   = filtered.filter((p) => p.isActive)
+  const inactive = filtered.filter((p) => !p.isActive)
 
   if (loading) return (
     <div className="flex justify-center py-20">
@@ -185,20 +194,34 @@ export default function AdminProducts() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h2 className="font-serif text-[22px] font-bold" style={{ color: 'var(--navy)' }}>Productos</h2>
           <p className="text-[13px] mt-1" style={{ color: 'var(--text-soft)' }}>{active.length} activos · {inactive.length} inactivos</p>
         </div>
-        <button
-          onClick={openAdd}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-[9px] text-[14px] font-bold text-white transition-all duration-150"
-          style={{ background: 'var(--navy)', border: 'none', cursor: 'pointer' }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy-deep)' }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy)' }}
-        >
-          + Agregar producto
-        </button>
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Search */}
+          <div className="relative" style={{ width: 260 }}>
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-soft)' }}>
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              className="form-input pl-9"
+              placeholder="Buscar por nombre, código…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <button
+            onClick={openAdd}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-[9px] text-[14px] font-bold text-white transition-all duration-150"
+            style={{ background: 'var(--navy)', border: 'none', cursor: 'pointer' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy-deep)' }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy)' }}
+          >
+            + Agregar producto
+          </button>
+        </div>
       </div>
 
       <ProductTable

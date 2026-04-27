@@ -49,6 +49,9 @@ export default function AdminLayout() {
             <NavLink to="/admin/productos" style={({ isActive }) => tabStyle(isActive)}>
               Productos
             </NavLink>
+            <NavLink to="/admin/pedidos" style={({ isActive }) => tabStyle(isActive)}>
+              Pedidos
+            </NavLink>
           </nav>
 
           <div className="flex items-center gap-2 ml-auto">

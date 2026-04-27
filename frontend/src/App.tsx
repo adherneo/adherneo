@@ -8,6 +8,7 @@ import Register from './pages/Register'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminProducts from './pages/admin/AdminProducts'
+import AdminOrders from './pages/admin/AdminOrders'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 
@@ -25,6 +26,7 @@ export default function App() {
           <Route index element={<Navigate to="usuarios" replace />} />
           <Route path="usuarios"  element={<AdminUsers />} />
           <Route path="productos" element={<AdminProducts />} />
+          <Route path="pedidos"   element={<AdminOrders />} />
         </Route>
       </Routes>
     </BrowserRouter>

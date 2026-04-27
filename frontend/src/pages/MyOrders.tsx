@@ -25,18 +25,14 @@ interface Order {
 
 const STATUS_LABEL: Record<string, string> = {
   pending:    'Pendiente',
-  confirmed:  'Confirmado',
   processing: 'En proceso',
-  shipped:    'Enviado',
-  delivered:  'Entregado',
+  delivered:  'Completado',
   cancelled:  'Cancelado',
 }
 
 const STATUS_COLOR: Record<string, { bg: string; color: string }> = {
   pending:    { bg: '#fff8e1', color: '#b07d00' },
-  confirmed:  { bg: '#e8f5ee', color: '#1a7c4f' },
   processing: { bg: '#e8f0ff', color: '#2563be' },
-  shipped:    { bg: '#e8f0ff', color: '#2563be' },
   delivered:  { bg: '#e8f5ee', color: '#1a7c4f' },
   cancelled:  { bg: '#fdf0ee', color: '#c0392b' },
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Body, Param, Query } from '@nestjs/common'
 import { OrdersService } from './orders.service'
 import { CreateOrderDto } from './dto/create-order.dto'
 import type { Order } from './entities/order.entity'
@@ -13,8 +13,16 @@ export class OrdersController {
   }
 
   @Get()
-  findAll() {
-    return this.svc.findAll()
+  findAll(
+    @Query('page')   page   = '1',
+    @Query('limit')  limit  = '20',
+    @Query('search') search = '',
+  ) {
+    return this.svc.findAllPaginated(
+      Math.max(1, parseInt(page,  10) || 1),
+      Math.min(100, parseInt(limit, 10) || 20),
+      search,
+    )
   }
 
   @Get('by-user/:userId')

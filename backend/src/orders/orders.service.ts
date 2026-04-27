@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { ILike, Repository } from 'typeorm'
 import { Order } from './entities/order.entity'
 import { OrderItem } from './entities/order-item.entity'
 import { CreateOrderDto } from './dto/create-order.dto'
@@ -8,8 +8,8 @@ import { CreateOrderDto } from './dto/create-order.dto'
 @Injectable()
 export class OrdersService {
   constructor(
-    @InjectRepository(Order)    private readonly orderRepo: Repository<Order>,
-    @InjectRepository(OrderItem) private readonly itemRepo: Repository<OrderItem>,
+    @InjectRepository(Order)     private readonly orderRepo: Repository<Order>,
+    @InjectRepository(OrderItem) private readonly itemRepo:  Repository<OrderItem>,
   ) {}
 
   async create(dto: CreateOrderDto): Promise<Order> {
@@ -17,7 +17,7 @@ export class OrdersService {
       customerName:  dto.customerName,
       customerEmail: dto.customerEmail,
       customerPhone: dto.customerPhone,
-      notes: dto.notes,
+      notes:         dto.notes,
       items: dto.items.map((i) =>
         this.itemRepo.create({
           productCode: i.productCode,
@@ -32,14 +32,33 @@ export class OrdersService {
     return this.orderRepo.save(order)
   }
 
-  findAll(): Promise<Order[]> {
-    return this.orderRepo.find({ order: { createdAt: 'DESC' }, relations: ['items'] })
+  async findAllPaginated(
+    page: number,
+    limit: number,
+    search?: string,
+  ): Promise<{ data: Order[]; total: number; pages: number }> {
+    const where = search?.trim()
+      ? [
+          { customerName:  ILike(`%${search}%`) },
+          { customerEmail: ILike(`%${search}%`) },
+          { customerPhone: ILike(`%${search}%`) },
+        ]
+      : undefined
+
+    const [data, total] = await this.orderRepo.findAndCount({
+      where,
+      order:     { createdAt: 'DESC' },
+      relations: ['items'],
+      skip:      (page - 1) * limit,
+      take:      limit,
+    })
+    return { data, total, pages: Math.ceil(total / limit) }
   }
 
   findByUser(userId: string): Promise<Order[]> {
     return this.orderRepo.find({
-      where: { user: { id: userId } },
-      order: { createdAt: 'DESC' },
+      where:     { user: { id: userId } },
+      order:     { createdAt: 'DESC' },
       relations: ['items'],
     })
   }

@@ -16,6 +16,7 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true)
   const [error, setError]   = useState('')
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [search, setSearch]     = useState('')
 
   function load() {
     setLoading(true)
@@ -51,12 +52,29 @@ export default function AdminUsers() {
 
   if (error) return <p className="text-center py-12 text-[14px]" style={{ color: '#c0392b' }}>{error}</p>
 
+  const q = search.trim().toLowerCase()
+  const visible = q
+    ? users.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
+    : users
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h2 className="font-serif text-[22px] font-bold" style={{ color: 'var(--navy)' }}>Usuarios</h2>
           <p className="text-[13px] mt-1" style={{ color: 'var(--text-soft)' }}>{users.length} usuarios registrados</p>
+        </div>
+        {/* Search */}
+        <div className="relative" style={{ width: 260 }}>
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-soft)' }}>
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            className="form-input pl-9"
+            placeholder="Buscar por nombre o email…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
       </div>
 
@@ -70,7 +88,7 @@ export default function AdminUsers() {
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
+            {visible.map((u) => (
               <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                 <td className="px-4 py-3 text-[14px] font-semibold" style={{ color: 'var(--text)' }}>{u.name}</td>
                 <td className="px-4 py-3 text-[13px]" style={{ color: 'var(--text-mid)' }}>{u.email}</td>
@@ -107,8 +125,10 @@ export default function AdminUsers() {
             ))}
           </tbody>
         </table>
-        {users.length === 0 && (
-          <p className="text-center py-12 text-[14px]" style={{ color: 'var(--text-soft)' }}>No hay usuarios.</p>
+        {visible.length === 0 && (
+          <p className="text-center py-12 text-[14px]" style={{ color: 'var(--text-soft)' }}>
+            {search ? 'Sin resultados.' : 'No hay usuarios.'}
+          </p>
         )}
       </div>
     </div>
