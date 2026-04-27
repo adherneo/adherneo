@@ -105,7 +105,12 @@ export default function Order() {
           {/* ── Empty cart ── */}
           {!items.length && status !== 'success' && (
             <div className="text-center py-24">
-              <div className="text-[56px] mb-5">🛒</div>
+              <div className="flex justify-center mb-5" style={{ color: 'var(--text-soft)' }}>
+                <svg viewBox="0 0 24 24" width="60" height="60" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+              </div>
               <h2 className="font-serif text-[22px] font-bold mb-2.5" style={{ color: 'var(--text)' }}>Tu carrito está vacío</h2>
               <p className="text-[15px] mb-7" style={{ color: 'var(--text-mid)' }}>Agregá productos desde el catálogo para continuar.</p>
               <Link to="/productos" className="btn-primary">Ver catálogo →</Link>

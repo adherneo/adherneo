@@ -5,8 +5,14 @@ interface ThemeStore {
   toggle: () => void
 }
 
+function getInitialDark(): boolean {
+  const saved = localStorage.getItem('theme')
+  if (saved) return saved === 'dark'
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
 export const useTheme = create<ThemeStore>((set) => ({
-  dark: document.documentElement.getAttribute('data-theme') === 'dark',
+  dark: getInitialDark(),
   toggle() {
     set((s) => {
       const next = !s.dark

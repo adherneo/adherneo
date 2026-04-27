@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -17,13 +18,25 @@ const CATS: { id: Category | string; name: string; count: string }[] = [
   { id: 'otros',           name: 'Otros',             count: 'Máscara, Tapaboca, Juanetes…' },
 ]
 
-const FEATURES = [
-  { icon: '🧵', title: 'Materiales premium', desc: 'Utilizamos telas y componentes seleccionados por su resistencia, transpirabilidad y confort prolongado.' },
-  { icon: '✅', title: 'Control de calidad estricto', desc: 'Cada producto pasa por controles antes de salir al mercado para garantizar que cumpla con los estándares que nos exigimos.' },
-  { icon: '📏', title: 'Talles para todos', desc: 'Amplia variedad de talles — hasta T5 — para que cada persona encuentre el ajuste ideal sin comprometer el soporte.' },
-  { icon: '🏭', title: 'Fabricación propia', desc: 'Todo se produce en nuestra planta, lo que nos permite controlar cada etapa y responder rápido a los pedidos.' },
-  { icon: '🤝', title: 'Atención personalizada', desc: 'Asesoramiento directo para distribuidores, farmacias y ortopedias que buscan productos confiables.' },
-  { icon: '⚡', title: 'Entrega ágil', desc: 'Proceso de pedidos simple y despacho rápido para que nunca falte stock en tu negocio.' },
+const IC = {
+  gem: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="6 3 18 3 22 9 12 22 2 9"/><line x1="2" y1="9" x2="22" y2="9"/><line x1="12" y1="3" x2="6" y2="9"/><line x1="12" y1="3" x2="18" y2="9"/></svg>,
+  shield: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>,
+  ruler: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="10" rx="1"/><line x1="7" y1="7" x2="7" y2="12"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="17" y1="7" x2="17" y2="12"/></svg>,
+  factory: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 20h20v-7l-5-5-3 3-4-6-6 5v10z"/><line x1="7" y1="14" x2="7" y2="16"/><line x1="12" y1="14" x2="12" y2="16"/><line x1="17" y1="14" x2="17" y2="16"/></svg>,
+  users: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+  zap: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+  pin: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>,
+  gear: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+  truck: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
+} satisfies Record<string, ReactNode>
+
+const FEATURES: { icon: ReactNode; title: string; desc: string }[] = [
+  { icon: IC.gem,     title: 'Materiales premium',          desc: 'Utilizamos telas y componentes seleccionados por su resistencia, transpirabilidad y confort prolongado.' },
+  { icon: IC.shield,  title: 'Control de calidad estricto', desc: 'Cada producto pasa por controles antes de salir al mercado para garantizar que cumpla con los estándares que nos exigimos.' },
+  { icon: IC.ruler,   title: 'Talles para todos',           desc: 'Amplia variedad de talles — hasta T5 — para que cada persona encuentre el ajuste ideal sin comprometer el soporte.' },
+  { icon: IC.factory, title: 'Fabricación propia',          desc: 'Todo se produce en nuestra planta, lo que nos permite controlar cada etapa y responder rápido a los pedidos.' },
+  { icon: IC.users,   title: 'Atención personalizada',      desc: 'Asesoramiento directo para distribuidores, farmacias y ortopedias que buscan productos confiables.' },
+  { icon: IC.zap,     title: 'Entrega ágil',                desc: 'Proceso de pedidos simple y despacho rápido para que nunca falte stock en tu negocio.' },
 ]
 
 export default function Landing() {
@@ -143,10 +156,10 @@ export default function Landing() {
 
             <div className="grid grid-cols-2 gap-4">
               {[
-                { icon: '🇦🇷', title: '100% Nacional', desc: 'Fabricación propia en Argentina con control de calidad en cada etapa.', delay: 1 },
-                { icon: '⚙️',  title: 'Alta calidad',  desc: 'Materiales seleccionados para máxima durabilidad y confort de uso.', delay: 2 },
-                { icon: '📐',  title: 'Talles variados', desc: 'Hasta 5 talles por producto para un ajuste preciso a cada persona.', delay: 3 },
-                { icon: '🚚',  title: 'Entrega ágil', desc: 'Distribución eficiente para llegar donde el cliente lo necesita.', delay: 4 },
+                { icon: IC.pin,   title: '100% Nacional',  desc: 'Fabricación propia en Argentina con control de calidad en cada etapa.', delay: 1 },
+                { icon: IC.gem,   title: 'Alta calidad',   desc: 'Materiales seleccionados para máxima durabilidad y confort de uso.', delay: 2 },
+                { icon: IC.ruler, title: 'Talles variados', desc: 'Hasta 5 talles por producto para un ajuste preciso a cada persona.', delay: 3 },
+                { icon: IC.truck, title: 'Entrega ágil',   desc: 'Distribución eficiente para llegar donde el cliente lo necesita.', delay: 4 },
               ].map((v) => (
                 <div
                   key={v.title}
@@ -155,9 +168,11 @@ export default function Landing() {
                   style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
                 >
                   <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-[22px] mb-3.5"
-                    style={{ background: 'linear-gradient(135deg,var(--navy),var(--blue))' }}
-                  >{v.icon}</div>
+                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-3.5"
+                    style={{ background: 'linear-gradient(135deg,var(--navy),var(--blue))', color: '#fff' }}
+                  >
+                    <span style={{ width: 22, height: 22, display: 'inline-flex' }}>{v.icon}</span>
+                  </div>
                   <p className="text-[15px] font-bold mb-1.5" style={{ color: 'var(--text)' }}>{v.title}</p>
                   <p className="text-[13px] leading-[1.5]" style={{ color: 'var(--text-mid)' }}>{v.desc}</p>
                 </div>
@@ -242,7 +257,7 @@ export default function Landing() {
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.13)' }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.08)' }}
                 >
-                  <div className="text-[32px] mb-4">{f.icon}</div>
+                  <div className="w-9 h-9 mb-4" style={{ color: 'rgba(255,255,255,.85)' }}>{f.icon}</div>
                   <p className="text-[18px] font-bold text-white mb-2.5">{f.title}</p>
                   <p className="text-[14px] leading-[1.7]" style={{ color: 'rgba(255,255,255,.65)' }}>{f.desc}</p>
                 </div>
