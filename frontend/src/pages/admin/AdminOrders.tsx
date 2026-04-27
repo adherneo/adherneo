@@ -96,6 +96,86 @@ export default function AdminOrders() {
     return new Date(d).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })
   }
 
+  function printOrderBW(o: Order) {
+    const date = new Date(o.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
+    const rows = o.items.map(i => {
+      const sub = i.unitPrice ? `$${(Number(i.unitPrice) * i.quantity).toLocaleString('es-AR')}` : '-'
+      const unit = i.unitPrice ? `$${Number(i.unitPrice).toLocaleString('es-AR')}` : ''
+      return `<tr>
+        <td style="padding:6px 8px;border-bottom:1px solid #ccc;font-family:monospace;font-size:11px;font-weight:700">${i.productCode}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #ccc;font-size:12px">${i.productName}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #ccc;font-size:11px;text-align:center">${i.size}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #ccc;font-size:12px;text-align:center;font-weight:700">${i.quantity}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #ccc;font-size:11px;text-align:right">${unit}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #ccc;font-size:12px;text-align:right;font-weight:700">${sub}</td>
+      </tr>`
+    }).join('')
+    const tot = orderTotal(o)
+    const totalRow = tot ? `<tr>
+      <td colspan="5" style="padding:8px 8px 4px;text-align:right;font-size:13px;font-weight:700">Total estimado</td>
+      <td style="padding:8px 8px 4px;text-align:right;font-size:15px;font-weight:700">$${tot.toLocaleString('es-AR')}</td>
+    </tr>` : ''
+    const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Pedido AdherNeo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:#000;padding:18mm}
+@page{size:A4;margin:12mm}
+@media print{body{padding:0}.no-print{display:none}}
+h1{font-family:Georgia,serif;font-size:22px;font-weight:700;margin-bottom:3px}
+.sub{font-size:11px;color:#555;margin-bottom:14px}
+.divider{border:none;border-top:1.5px solid #000;margin:12px 0}
+.section-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#555;margin-bottom:6px}
+.info-row{display:flex;gap:32px;margin-bottom:10px}
+.info-item{min-width:140px}
+.info-item label{font-size:9px;color:#888;display:block;margin-bottom:1px}
+.info-item span{font-size:12px}
+table{width:100%;border-collapse:collapse}
+thead tr{border-bottom:1.5px solid #000}
+thead th{padding:6px 8px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+thead th:nth-child(3){text-align:center}
+thead th:nth-child(4),thead th:nth-child(5),thead th:last-child{text-align:right}
+.footer{margin-top:20px;font-size:10px;color:#888;border-top:1px solid #ccc;padding-top:8px}
+.print-btn{position:fixed;bottom:18px;right:18px;background:#000;color:#fff;border:none;border-radius:6px;padding:9px 18px;font-size:12px;font-weight:600;cursor:pointer}
+</style></head><body>
+<div style="display:flex;justify-content:space-between;align-items:flex-start">
+  <div><h1>AdherNeo</h1><div class="sub">Productos ortopédicos · Pedido #${o.id.slice(0,8).toUpperCase()}</div></div>
+  <div style="text-align:right;font-size:12px;color:#555">${date}</div>
+</div>
+<hr class="divider">
+<div class="section-title">Datos del cliente</div>
+<div class="info-row">
+  <div class="info-item"><label>Nombre</label><span>${o.customerName}</span></div>
+  <div class="info-item"><label>Email</label><span>${o.customerEmail}</span></div>
+  ${o.customerPhone ? `<div class="info-item"><label>Teléfono</label><span>${o.customerPhone}</span></div>` : ''}
+</div>
+<hr class="divider">
+<div class="section-title">Artículos</div>
+<table>
+  <thead><tr>
+    <th>Código</th><th>Producto</th><th>Talle</th><th>Cant.</th><th>P. Unit.</th><th>Subtotal</th>
+  </tr></thead>
+  <tbody>${rows}${totalRow}</tbody>
+</table>
+${o.notes ? `<div style="margin-top:14px;font-size:12px"><strong>Notas:</strong> ${o.notes}</div>` : ''}
+<div class="footer">AdherNeo · adherneo@hotmail.com · Este documento no es una factura oficial</div>
+<button class="print-btn no-print" onclick="window.print()">Imprimir / PDF</button>
+</body></html>`
+    let iframe = document.getElementById('_bw_frame') as HTMLIFrameElement | null
+    if (iframe) iframe.remove()
+    iframe = document.createElement('iframe')
+    iframe.id = '_bw_frame'
+    iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;background:#fff'
+    document.body.appendChild(iframe)
+    iframe.srcdoc = html
+    iframe.onload = () => {
+      const close = document.createElement('button')
+      close.textContent = '✕ Cerrar'
+      close.style.cssText = 'position:fixed;top:14px;left:20px;z-index:10000;background:#333;color:#fff;border:none;border-radius:7px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:sans-serif'
+      close.onclick = () => { iframe!.remove(); close.remove() }
+      document.body.appendChild(close)
+    }
+  }
+
   return (
     <div>
       {/* Header */}
@@ -237,9 +317,23 @@ export default function AdminOrders() {
                       {isOpen && (
                         <tr key={`${o.id}-items`} style={{ borderBottom: '1px solid var(--border)' }}>
                           <td colSpan={8} className="px-6 pb-4 pt-2" style={{ background: 'var(--bg)' }}>
-                            <p className="text-[10px] font-bold tracking-wider uppercase mb-2" style={{ color: 'var(--text-soft)' }}>
-                              Productos del pedido
-                            </p>
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-[10px] font-bold tracking-wider uppercase" style={{ color: 'var(--text-soft)' }}>
+                                Productos del pedido
+                              </p>
+                              <button
+                                onClick={() => printOrderBW(o)}
+                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] text-[11px] font-semibold transition-all duration-150 cursor-pointer"
+                                style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text-mid)' }}
+                                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--text-mid)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
+                                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-mid)' }}
+                              >
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+                                </svg>
+                                Imprimir B/N
+                              </button>
+                            </div>
                             <div className="flex flex-col gap-1.5">
                               {o.items.map((item) => (
                                 <div key={item.id} className="flex items-center gap-3 py-2 px-3 rounded-lg" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>

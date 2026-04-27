@@ -126,7 +126,7 @@ export default function Order() {
     if (!s) return
     const lines = s.items.map(i => `- ${i.code}. ${i.name} | ${i.size} x${i.qty}${i.price ? ` ($${(i.price * i.qty).toLocaleString('es-AR')})` : ''}`).join('\n')
     const totalLine = s.subtotal > 0 ? `\nTotal: $${s.subtotal.toLocaleString('es-AR')}` : ''
-    const msg = `*Nuevo pedido AdherNeo*\nNombre: ${s.name}\nEmail: ${s.email}${s.phone ? `\nTel: ${s.phone}` : ''}\n\n${lines}${totalLine}`
+    const msg = `Hola Hernan, soy ${s.name}, quería realizar un pedido con los siguientes productos:\n\n${lines}${totalLine}\n\nEmail: ${s.email}${s.phone ? `\nTel: ${s.phone}` : ''}`
     window.open(`https://wa.me/${WA_ADMIN}?text=${encodeURIComponent(msg)}`, '_blank')
   }
 

@@ -5,10 +5,10 @@ import { useTheme } from '../../store/theme'
 import { useAuth } from '../../store/auth'
 
 const TABS = [
-  { to: '/admin/usuarios',  label: 'Usuarios'  },
-  { to: '/admin/productos', label: 'Productos' },
-  { to: '/admin/pedidos',   label: 'Pedidos'   },
   { to: '/admin/etiquetas', label: 'Etiquetas' },
+  { to: '/admin/pedidos',   label: 'Pedidos'   },
+  { to: '/admin/productos', label: 'Productos' },
+  { to: '/admin/usuarios',  label: 'Usuarios'  },
 ]
 
 export default function AdminLayout() {
