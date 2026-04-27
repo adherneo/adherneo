@@ -26,7 +26,7 @@ function loadEmailJS(): Promise<void> {
 }
 
 export default function Order() {
-  const { items, updateQty, remove, clear, total } = useCart()
+  const { items, updateQty, remove, clear, total, priceTotal } = useCart()
   const { user } = useAuth()
 
   const [name, setName]   = useState(user?.name  ?? '')
@@ -39,22 +39,19 @@ export default function Order() {
   const [errorMsg, setErrorMsg] = useState('')
 
   const n = total()
+  const subtotal = priceTotal()
+  const hasPrices = items.some((i) => (i.price ?? 0) > 0)
   const effectiveEmail = (user && !editEmail) ? user.email : email
 
   function buildEmailBody() {
-    const grouped: Record<string, { code: string; name: string; entries: { size: string; qty: number }[] }> = {}
-    items.forEach((item) => {
-      const k = `${item.code}||${item.name}`
-      if (!grouped[k]) grouped[k] = { code: item.code, name: item.name, entries: [] }
-      grouped[k].entries.push({ size: item.size, qty: item.qty })
-    })
-    const lines = Object.values(grouped).map((p) => {
-      const parts = p.entries.map((e) => `${e.size} (${e.qty})`).join('  ')
-      return `- ${p.code}. ${p.name}: ${parts}`
+    const lines = items.map((item) => {
+      const priceStr = item.price ? ` — $${(item.price * item.qty).toLocaleString('es-AR')}` : ''
+      return `- ${item.code}. ${item.name} | ${item.size} × ${item.qty}${priceStr}`
     })
     let body = `Nuevo pedido de ${name}\nEmail: ${effectiveEmail}\n`
     if (phone) body += `Teléfono: ${phone}\n`
     body += `\nArtículos pedidos:\n${lines.join('\n')}\n\nTotal: ${n} artículo${n !== 1 ? 's' : ''}`
+    if (hasPrices) body += ` — Total estimado: $${subtotal.toLocaleString('es-AR')}`
     if (notes) body += `\n\nNotas: ${notes}`
     return body
   }
@@ -75,6 +72,7 @@ export default function Order() {
             productName: i.name,
             size:        i.size,
             quantity:    i.qty,
+            unitPrice:   i.price ?? null,
             productId:   i.productId,
           })),
         }),
@@ -177,6 +175,22 @@ export default function Order() {
                             <button className="w-[26px] h-7 flex items-center justify-center cursor-pointer" style={{ background: 'none', border: 'none', color: 'var(--text-mid)', fontSize: 15 }}
                               onClick={() => updateQty(item.key, item.qty + 1)}>+</button>
                           </div>
+                          {hasPrices && (
+                            <div className="text-right flex-shrink-0 w-24 hidden sm:block">
+                              {item.price ? (
+                                <>
+                                  <p className="text-[13px] font-bold" style={{ color: 'var(--text)' }}>
+                                    ${(item.price * item.qty).toLocaleString('es-AR')}
+                                  </p>
+                                  <p className="text-[10px]" style={{ color: 'var(--text-soft)' }}>
+                                    ${item.price.toLocaleString('es-AR')} c/u
+                                  </p>
+                                </>
+                              ) : (
+                                <span className="text-[11px]" style={{ color: 'var(--text-soft)' }}>—</span>
+                              )}
+                            </div>
+                          )}
                           <button
                             onClick={() => remove(item.key)}
                             className="w-7 h-7 flex items-center justify-center rounded-[6px] text-[13px] cursor-pointer transition-all duration-150 flex-shrink-0"
@@ -186,9 +200,19 @@ export default function Order() {
                           >✕</button>
                         </div>
                       ))}
-                      <div className="flex justify-between items-center mt-4 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
-                        <span className="text-[13px]" style={{ color: 'var(--text-mid)' }}>Total de artículos</span>
-                        <span className="text-[15px] font-bold" style={{ color: 'var(--text)' }}>{n}</span>
+                      <div className="mt-4 pt-4 flex flex-col gap-1.5" style={{ borderTop: '1px solid var(--border)' }}>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[13px]" style={{ color: 'var(--text-mid)' }}>Total de artículos</span>
+                          <span className="text-[13px] font-bold" style={{ color: 'var(--text)' }}>{n}</span>
+                        </div>
+                        {hasPrices && (
+                          <div className="flex justify-between items-center pt-1.5 mt-0.5" style={{ borderTop: '1px solid var(--border)' }}>
+                            <span className="text-[14px] font-bold" style={{ color: 'var(--text)' }}>Total estimado</span>
+                            <span className="text-[17px] font-bold" style={{ color: 'var(--navy)' }}>
+                              ${subtotal.toLocaleString('es-AR')}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <Link to="/productos" className="inline-flex items-center gap-1.5 mt-3.5 text-[13px] font-medium" style={{ color: 'var(--text-mid)' }}>
                         ← Seguir agregando

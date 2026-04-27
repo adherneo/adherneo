@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common'
+import { Controller, Get, Post, Put, Patch, Delete, Body, Param, Query } from '@nestjs/common'
 import { ProductsService } from './products.service'
 import { CreateProductDto } from './dto/create-product.dto'
 
@@ -14,6 +14,11 @@ export class ProductsController {
   @Get()
   findAll(@Query('category') category?: string, @Query('all') all?: string) {
     return this.svc.findAll(category, all === 'true')
+  }
+
+  @Patch('prices/bulk')
+  bulkUpdatePrices(@Body() dto: { type: 'percentage'; value: number } | { type: 'codes'; updates: { code: string; price: number }[] }) {
+    return this.svc.bulkUpdatePrices(dto)
   }
 
   @Get(':id')

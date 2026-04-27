@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer'
 import {
   IsEmail, IsNotEmpty, IsOptional, IsString,
-  IsArray, ValidateNested, IsInt, Min,
+  IsArray, ValidateNested, IsInt, Min, IsNumber,
 } from 'class-validator'
 
 export class OrderItemDto {
@@ -20,6 +20,10 @@ export class OrderItemDto {
   @IsInt()
   @Min(1)
   quantity: number
+
+  @IsNumber()
+  @IsOptional()
+  unitPrice?: number
 
   @IsString()
   @IsOptional()

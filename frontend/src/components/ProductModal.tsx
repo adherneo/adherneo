@@ -50,7 +50,7 @@ export default function ProductModal({ product: p, onClose }: Props) {
       }
       size = selectedSize
     }
-    add({ productId: p!.id, code: p!.code, name: p!.name, cat: p!.cat, size, qty })
+    add({ productId: p!.id, code: p!.code, name: p!.name, cat: p!.cat, size, qty, price: p!.price })
     setAdded(true)
     setTimeout(() => { onClose() }, 1100)
   }

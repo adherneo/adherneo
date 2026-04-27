@@ -24,6 +24,7 @@ export class OrdersService {
           productName: i.productName,
           size:        i.size,
           quantity:    i.quantity,
+          unitPrice:   i.unitPrice ?? null,
           ...(i.productId ? { product: { id: i.productId } as any } : {}),
         }),
       ),

@@ -34,4 +34,32 @@ export class ProductsService {
   async remove(id: string): Promise<void> {
     await this.repo.update(id, { isActive: false })
   }
+
+  async bulkUpdatePrices(dto: {
+    type: 'percentage'
+    value: number
+  } | {
+    type: 'codes'
+    updates: { code: string; price: number }[]
+  }): Promise<{ updated: number }> {
+    if (dto.type === 'percentage') {
+      const multiplier = 1 + dto.value / 100
+      const products = await this.repo.find({ where: {} })
+      await Promise.all(
+        products.map((p) =>
+          this.repo.update(p.id, { price: Math.round(Number(p.price) * multiplier) })
+        )
+      )
+      return { updated: products.length }
+    } else {
+      let updated = 0
+      await Promise.all(
+        dto.updates.map(async ({ code, price }) => {
+          const result = await this.repo.update({ code }, { price })
+          updated += result.affected ?? 0
+        })
+      )
+      return { updated }
+    }
+  }
 }

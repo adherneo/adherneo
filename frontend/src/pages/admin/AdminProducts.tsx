@@ -39,6 +39,14 @@ export default function AdminProducts() {
   const [search, setSearch]       = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
+  // Price update modal
+  const [priceModal, setPriceModal] = useState(false)
+  const [priceTab, setPriceTab]     = useState<'pct' | 'csv'>('pct')
+  const [pctValue, setPctValue]     = useState('')
+  const [csvText, setCsvText]       = useState('')
+  const [priceApplying, setPriceApplying] = useState(false)
+  const [priceMsg, setPriceMsg]     = useState<{ ok: boolean; text: string } | null>(null)
+
   function load() {
     setLoading(true)
     fetch('/api/products?all=true')
@@ -171,6 +179,41 @@ export default function AdminProducts() {
     }
   }
 
+  async function applyPriceUpdate() {
+    setPriceApplying(true)
+    setPriceMsg(null)
+    try {
+      let body: object
+      if (priceTab === 'pct') {
+        const val = parseFloat(pctValue)
+        if (isNaN(val) || val === 0) { setPriceMsg({ ok: false, text: 'Ingresá un porcentaje válido.' }); return }
+        body = { type: 'percentage', value: val }
+      } else {
+        const updates = csvText.trim().split('\n').flatMap((line) => {
+          const parts = line.split(/[,;]/).map((p) => p.trim())
+          const code  = parts[0]
+          const price = parseFloat(parts[1]?.replace(/[.$\s]/g, ''))
+          return (code && !isNaN(price) && price > 0) ? [{ code, price }] : []
+        })
+        if (updates.length === 0) { setPriceMsg({ ok: false, text: 'No se encontraron filas válidas (formato: CÓDIGO,PRECIO).' }); return }
+        body = { type: 'codes', updates }
+      }
+      const res = await fetch('/api/products/prices/bulk', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message ?? 'Error')
+      setPriceMsg({ ok: true, text: `${data.updated} producto${data.updated !== 1 ? 's' : ''} actualizado${data.updated !== 1 ? 's' : ''}.` })
+      load()
+    } catch (err: unknown) {
+      setPriceMsg({ ok: false, text: err instanceof Error ? err.message : 'Error al actualizar.' })
+    } finally {
+      setPriceApplying(false)
+    }
+  }
+
   const q = search.trim().toLowerCase()
   const filtered = q
     ? products.filter((p) =>
@@ -213,6 +256,13 @@ export default function AdminProducts() {
             />
           </div>
           <button
+            onClick={() => { setPriceModal(true); setPriceMsg(null); setPctValue(''); setCsvText('') }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-[9px] text-[14px] font-semibold transition-all duration-150"
+            style={{ border: '1.5px solid var(--border)', background: 'var(--bg)', color: 'var(--text-mid)', cursor: 'pointer' }}
+          >
+            Actualizar precios
+          </button>
+          <button
             onClick={openAdd}
             className="flex items-center gap-2 px-4 py-2.5 rounded-[9px] text-[14px] font-bold text-white transition-all duration-150"
             style={{ background: 'var(--navy)', border: 'none', cursor: 'pointer' }}
@@ -240,6 +290,111 @@ export default function AdminProducts() {
             onDelete={handleDelete}
             onReactivate={handleReactivate}
           />
+        </div>
+      )}
+
+      {/* Price update modal */}
+      {priceModal && (
+        <div
+          className="fixed inset-0 z-[3000] flex items-center justify-center p-5"
+          style={{ background: 'rgba(8,18,40,.65)', backdropFilter: 'blur(4px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setPriceModal(false) }}
+        >
+          <div className="w-full overflow-y-auto" style={{ maxWidth: 500, maxHeight: '90vh', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, boxShadow: '0 20px 60px rgba(18,38,78,.3)' }}>
+            <div className="flex items-center justify-between px-6 pt-5 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
+              <p className="text-[16px] font-bold" style={{ color: 'var(--navy)' }}>Actualizar precios</p>
+              <button onClick={() => setPriceModal(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-[7px]"
+                style={{ border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', color: 'var(--text-soft)' }}>✕</button>
+            </div>
+
+            <div className="px-6 py-5">
+              {/* Tabs */}
+              <div className="flex gap-1 mb-5 p-1 rounded-[10px]" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
+                {([['pct', 'Aumento %'], ['csv', 'Importar lista']] as const).map(([t, label]) => (
+                  <button key={t} onClick={() => { setPriceTab(t); setPriceMsg(null) }}
+                    className="flex-1 py-1.5 rounded-[8px] text-[13px] font-semibold transition-all duration-150"
+                    style={{ background: priceTab === t ? 'var(--surface)' : 'transparent', color: priceTab === t ? 'var(--navy)' : 'var(--text-soft)', border: 'none', cursor: 'pointer', boxShadow: priceTab === t ? '0 1px 4px rgba(0,0,0,.08)' : 'none' }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {priceTab === 'pct' ? (
+                <div className="flex flex-col gap-4">
+                  <p className="text-[13px]" style={{ color: 'var(--text-mid)' }}>
+                    Ingresá el porcentaje de aumento o reducción. Ej: <strong>15</strong> para +15%, <strong>-5</strong> para -5%.
+                  </p>
+                  <div className="flex gap-3 items-center">
+                    <input
+                      className="form-input flex-1 text-[16px] font-bold"
+                      type="number"
+                      step="0.1"
+                      value={pctValue}
+                      onChange={(e) => setPctValue(e.target.value)}
+                      placeholder="15"
+                      disabled={priceApplying}
+                    />
+                    <span className="text-[18px] font-bold flex-shrink-0" style={{ color: 'var(--text-soft)' }}>%</span>
+                  </div>
+                  {pctValue && !isNaN(parseFloat(pctValue)) && parseFloat(pctValue) !== 0 && (
+                    <p className="text-[12px] px-3 py-2 rounded-[8px]" style={{ background: 'var(--sky)', color: 'var(--blue)' }}>
+                      Se {parseFloat(pctValue) > 0 ? 'aumentarán' : 'reducirán'} todos los precios un {Math.abs(parseFloat(pctValue))}%.
+                      Afecta {products.length} productos.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <p className="text-[13px]" style={{ color: 'var(--text-mid)' }}>
+                    Pegá la lista con el formato <strong>CÓDIGO,PRECIO</strong> (una línea por producto). El separador puede ser coma o punto y coma.
+                  </p>
+                  <textarea
+                    className="form-input resize-y font-mono text-[13px]"
+                    style={{ height: 180 }}
+                    placeholder={'04,1500\n030,2200\n060,3800'}
+                    value={csvText}
+                    onChange={(e) => setCsvText(e.target.value)}
+                    disabled={priceApplying}
+                  />
+                  {csvText.trim() && (() => {
+                    const count = csvText.trim().split('\n').filter((line) => {
+                      const parts = line.split(/[,;]/)
+                      return parts[0]?.trim() && !isNaN(parseFloat((parts[1] ?? '').replace(/[.$\s]/g, '')))
+                    }).length
+                    return count > 0 ? (
+                      <p className="text-[12px] px-3 py-2 rounded-[8px]" style={{ background: 'var(--sky)', color: 'var(--blue)' }}>
+                        {count} línea{count !== 1 ? 's' : ''} válida{count !== 1 ? 's' : ''} detectada{count !== 1 ? 's' : ''}.
+                      </p>
+                    ) : null
+                  })()}
+                </div>
+              )}
+
+              {priceMsg && (
+                <div className="mt-4 px-3 py-2.5 rounded-[8px] text-[13px]"
+                  style={{ background: priceMsg.ok ? '#e8f5ee' : '#fdf0ee', border: `1px solid ${priceMsg.ok ? 'rgba(26,124,79,.2)' : 'rgba(192,57,43,.2)'}`, color: priceMsg.ok ? '#1a7c4f' : '#c0392b' }}>
+                  {priceMsg.text}
+                </div>
+              )}
+
+              <div className="flex gap-3 justify-end mt-5">
+                <button type="button" onClick={() => setPriceModal(false)}
+                  className="px-5 py-2.5 rounded-[9px] text-[14px] font-semibold"
+                  style={{ border: '1.5px solid var(--border)', background: 'var(--bg)', color: 'var(--text-mid)', cursor: 'pointer' }}>
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={applyPriceUpdate}
+                  disabled={priceApplying}
+                  className="px-5 py-2.5 rounded-[9px] text-[14px] font-bold text-white"
+                  style={{ background: 'var(--navy)', border: 'none', cursor: priceApplying ? 'default' : 'pointer', opacity: priceApplying ? .65 : 1 }}>
+                  {priceApplying ? 'Aplicando…' : 'Aplicar'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

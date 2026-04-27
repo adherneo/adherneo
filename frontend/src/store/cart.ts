@@ -9,24 +9,25 @@ interface CartStore {
   updateQty: (key: string, qty: number) => void
   clear: () => void
   total: () => number
+  priceTotal: () => number
 }
 
 export const useCart = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
-      add({ productId, code, name, cat, size, qty }) {
+      add({ productId, code, name, cat, size, qty, price }) {
         const key = `${productId}||${size}`
         set((s) => {
           const existing = s.items.find((i) => i.key === key)
           if (existing) {
             return {
               items: s.items.map((i) =>
-                i.key === key ? { ...i, qty: i.qty + qty } : i,
+                i.key === key ? { ...i, qty: i.qty + qty, price: price ?? i.price } : i,
               ),
             }
           }
-          return { items: [...s.items, { key, productId, code, name, cat, size, qty }] }
+          return { items: [...s.items, { key, productId, code, name, cat, size, qty, price }] }
         })
       },
       remove(key) {
@@ -40,6 +41,7 @@ export const useCart = create<CartStore>()(
       },
       clear() { set({ items: [] }) },
       total() { return get().items.reduce((s, i) => s + i.qty, 0) },
+      priceTotal() { return get().items.reduce((s, i) => s + i.qty * (i.price ?? 0), 0) },
     }),
     { name: 'adherneo_cart' },
   ),

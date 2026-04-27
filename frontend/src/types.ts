@@ -67,6 +67,7 @@ export interface CartItem {
   cat: Category
   size: string
   qty: number
+  price?: number
 }
 
 export interface Cart {

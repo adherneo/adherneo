@@ -10,6 +10,7 @@ interface OrderItem {
   productName: string
   size: string
   quantity: number
+  unitPrice: number | null
 }
 
 interface Order {
@@ -57,6 +58,11 @@ export default function MyOrders() {
 
   function totalItems(o: Order) {
     return o.items.reduce((s, i) => s + i.quantity, 0)
+  }
+
+  function orderTotal(o: Order) {
+    const t = o.items.reduce((s, i) => s + i.quantity * (Number(i.unitPrice) || 0), 0)
+    return t > 0 ? t : null
   }
 
   return (
@@ -128,6 +134,11 @@ export default function MyOrders() {
                         </div>
                         <p className="text-[12px]" style={{ color: 'var(--text-soft)' }}>
                           {fmt(o.createdAt)} · {totalItems(o)} artículo{totalItems(o) !== 1 ? 's' : ''}
+                          {orderTotal(o) !== null && (
+                            <span className="font-semibold" style={{ color: 'var(--navy)' }}>
+                              {' · '}${orderTotal(o)!.toLocaleString('es-AR')}
+                            </span>
+                          )}
                         </p>
                       </div>
                       <svg
@@ -157,6 +168,11 @@ export default function MyOrders() {
                                 <span className="text-[13px] flex-1 truncate" style={{ color: 'var(--text)' }}>{item.productName}</span>
                                 <span className="text-[12px] flex-shrink-0" style={{ color: 'var(--text-soft)' }}>{item.size}</span>
                                 <span className="text-[12px] font-bold flex-shrink-0" style={{ color: 'var(--text-mid)' }}>×{item.quantity}</span>
+                                {item.unitPrice ? (
+                                  <span className="text-[12px] font-semibold flex-shrink-0 w-24 text-right" style={{ color: 'var(--text)' }}>
+                                    ${(Number(item.unitPrice) * item.quantity).toLocaleString('es-AR')}
+                                  </span>
+                                ) : null}
                               </div>
                             ))}
                           </div>

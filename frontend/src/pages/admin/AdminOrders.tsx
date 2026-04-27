@@ -6,6 +6,7 @@ interface OrderItem {
   productName: string
   size: string
   quantity: number
+  unitPrice: number | null
 }
 
 interface Order {
@@ -86,6 +87,11 @@ export default function AdminOrders() {
     return o.items.reduce((s, i) => s + i.quantity, 0)
   }
 
+  function orderTotal(o: Order) {
+    const t = o.items.reduce((s, i) => s + i.quantity * (Number(i.unitPrice) || 0), 0)
+    return t > 0 ? t : null
+  }
+
   function fmt(d: string) {
     return new Date(d).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })
   }
@@ -121,7 +127,7 @@ export default function AdminOrders() {
           <table className="w-full" style={{ minWidth: 700 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}>
-                {['Código', 'Cliente', 'Teléfono', 'Artículos', 'Notas', 'Estado', 'Fecha'].map((h) => (
+                {['Código', 'Cliente', 'Teléfono', 'Artículos', 'Total', 'Notas', 'Estado', 'Fecha'].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-[11px] font-bold tracking-wider uppercase" style={{ color: 'var(--text-soft)' }}>{h}</th>
                 ))}
               </tr>
@@ -129,7 +135,7 @@ export default function AdminOrders() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12">
+                  <td colSpan={8} className="text-center py-12">
                     <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="animate-spin inline-block" style={{ color: 'var(--text-soft)' }}>
                       <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
                     </svg>
@@ -137,7 +143,7 @@ export default function AdminOrders() {
                 </tr>
               ) : orders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-[13px]" style={{ color: 'var(--text-soft)' }}>
+                  <td colSpan={8} className="text-center py-12 text-[13px]" style={{ color: 'var(--text-soft)' }}>
                     {query ? 'Sin resultados para esa búsqueda.' : 'No hay pedidos aún.'}
                   </td>
                 </tr>
@@ -188,6 +194,11 @@ export default function AdminOrders() {
                           </button>
                         </td>
 
+                        {/* Total */}
+                        <td className="px-4 py-3 text-[13px] font-bold whitespace-nowrap" style={{ color: 'var(--navy)' }}>
+                          {orderTotal(o) !== null ? `$${orderTotal(o)!.toLocaleString('es-AR')}` : '—'}
+                        </td>
+
                         {/* Notas */}
                         <td className="px-4 py-3 text-[12px]" style={{ color: 'var(--text-soft)', maxWidth: 160 }}>
                           {o.notes
@@ -225,7 +236,7 @@ export default function AdminOrders() {
                       {/* Expanded items row */}
                       {isOpen && (
                         <tr key={`${o.id}-items`} style={{ borderBottom: '1px solid var(--border)' }}>
-                          <td colSpan={7} className="px-6 pb-4 pt-2" style={{ background: 'var(--bg)' }}>
+                          <td colSpan={8} className="px-6 pb-4 pt-2" style={{ background: 'var(--bg)' }}>
                             <p className="text-[10px] font-bold tracking-wider uppercase mb-2" style={{ color: 'var(--text-soft)' }}>
                               Productos del pedido
                             </p>
@@ -243,6 +254,11 @@ export default function AdminOrders() {
                                   <span className="text-[13px] font-bold flex-shrink-0 w-8 text-right" style={{ color: 'var(--text-mid)' }}>
                                     ×{item.quantity}
                                   </span>
+                                  {item.unitPrice ? (
+                                    <span className="text-[12px] font-semibold flex-shrink-0 w-28 text-right" style={{ color: 'var(--navy)' }}>
+                                      ${(Number(item.unitPrice) * item.quantity).toLocaleString('es-AR')}
+                                    </span>
+                                  ) : null}
                                 </div>
                               ))}
                             </div>

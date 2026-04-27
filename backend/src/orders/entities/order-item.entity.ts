@@ -29,4 +29,7 @@ export class OrderItem {
 
   @Column({ type: 'int' })
   quantity: number
+
+  @Column({ name: 'unit_price', type: 'numeric', precision: 12, scale: 2, nullable: true, default: null })
+  unitPrice: number | null
 }

@@ -31,7 +31,7 @@ export default function ProductCard({ product: p, onPreview }: Props) {
       }
       size = selectedSize
     }
-    add({ productId: p.id, code: p.code, name: p.name, cat: p.cat, size, qty })
+    add({ productId: p.id, code: p.code, name: p.name, cat: p.cat, size, qty, price: p.price })
     setAdded(true)
     setQty(1)
     setSelectedSize(null)
