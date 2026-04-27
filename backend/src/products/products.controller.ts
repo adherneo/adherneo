@@ -12,8 +12,8 @@ export class ProductsController {
   }
 
   @Get()
-  findAll(@Query('category') category?: string) {
-    return this.svc.findAll(category)
+  findAll(@Query('category') category?: string, @Query('all') all?: string) {
+    return this.svc.findAll(category, all === 'true')
   }
 
   @Get(':id')

@@ -1,8 +1,47 @@
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import Logo from './Logo'
 
+function useScrollNav() {
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  return function go(to: string) {
+    const hashIdx = to.indexOf('#')
+    if (hashIdx === -1) { navigate(to); return }
+
+    const basePath = to.slice(0, hashIdx) || '/'
+    const hash = to.slice(hashIdx + 1)
+
+    function scroll() {
+      if (hash === 'inicio') { window.scrollTo({ top: 0, behavior: 'smooth' }); return }
+      document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+
+    if (location.pathname === basePath) {
+      scroll()
+    } else {
+      navigate(basePath)
+      setTimeout(scroll, 120)
+    }
+  }
+}
+
 export default function Footer() {
+  const go = useScrollNav()
+
+  const NavLink = ({ to, children }: { to: string; children: ReactNode }) => (
+    <button
+      onClick={() => go(to)}
+      className="text-sm transition-colors duration-150 text-left"
+      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.65)', padding: 0 }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = '#fff' }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,.65)' }}
+    >
+      {children}
+    </button>
+  )
+
   return (
     <footer style={{ background: 'var(--navy)', color: 'rgba(255,255,255,.8)', padding: '60px 40px 32px' }}>
       <div className="max-w-[1160px] mx-auto">
@@ -23,14 +62,13 @@ export default function Footer() {
           <div>
             <p className="text-[11px] font-bold tracking-widest uppercase mb-5" style={{ color: 'rgba(255,255,255,.4)' }}>Navegación</p>
             <ul className="space-y-2.5">
-              {[['/', 'Inicio'], ['/#quienes', 'Quiénes Somos'], ['/#fabricamos', 'Qué Fabricamos'], ['/#porque', 'Por qué Elegirnos']].map(([to, label]) => (
-                <li key={to}>
-                  <Link to={to} className="text-sm transition-colors duration-150" style={{ color: 'rgba(255,255,255,.65)' }}
-                    onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#fff' }}
-                    onMouseLeave={(e) => { (e.target as HTMLElement).style.color = 'rgba(255,255,255,.65)' }}>
-                    {label}
-                  </Link>
-                </li>
+              {([
+                ['/#inicio',     'Inicio'],
+                ['/#quienes',    'Quiénes Somos'],
+                ['/#fabricamos', 'Qué Fabricamos'],
+                ['/#porque',     'Por Qué Elegirnos'],
+              ] as [string, string][]).map(([to, label]) => (
+                <li key={to}><NavLink to={to}>{label}</NavLink></li>
               ))}
             </ul>
           </div>
@@ -38,14 +76,11 @@ export default function Footer() {
           <div>
             <p className="text-[11px] font-bold tracking-widest uppercase mb-5" style={{ color: 'rgba(255,255,255,.4)' }}>Productos</p>
             <ul className="space-y-2.5">
-              {[['/productos', 'Catálogo completo'], ['/pedido', 'Realizar pedido']].map(([to, label]) => (
-                <li key={to}>
-                  <Link to={to} className="text-sm transition-colors duration-150" style={{ color: 'rgba(255,255,255,.65)' }}
-                    onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#fff' }}
-                    onMouseLeave={(e) => { (e.target as HTMLElement).style.color = 'rgba(255,255,255,.65)' }}>
-                    {label}
-                  </Link>
-                </li>
+              {([
+                ['/productos', 'Catálogo completo'],
+                ['/pedido',    'Realizar pedido'],
+              ] as [string, string][]).map(([to, label]) => (
+                <li key={to}><NavLink to={to}>{label}</NavLink></li>
               ))}
             </ul>
           </div>

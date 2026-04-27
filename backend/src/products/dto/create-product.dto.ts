@@ -1,4 +1,5 @@
-import { IsString, IsNotEmpty, IsOptional, IsArray, IsBoolean } from 'class-validator'
+import { IsString, IsNotEmpty, IsOptional, IsArray, IsBoolean, IsNumber } from 'class-validator'
+import { Type } from 'class-transformer'
 
 export class CreateProductDto {
   @IsString()
@@ -19,7 +20,16 @@ export class CreateProductDto {
 
   @IsString()
   @IsOptional()
+  description?: string
+
+  @IsString()
+  @IsOptional()
   imgUrl?: string
+
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  price?: number
 
   @IsBoolean()
   @IsOptional()

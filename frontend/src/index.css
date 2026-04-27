@@ -26,6 +26,7 @@
 }
 
 [data-theme="dark"] {
+  --navy:     #7eb4f0;
   --bg:       #0b1527;
   --surface:  #111f38;
   --surface2: #162844;

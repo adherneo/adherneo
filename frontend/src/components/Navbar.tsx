@@ -5,12 +5,15 @@ import { useTheme } from '../store/theme'
 import { useCart } from '../store/cart'
 import { useAuth } from '../store/auth'
 
+const SECTIONS = ['porque', 'fabricamos', 'quienes', 'inicio'] // bottom-to-top for scroll lookup
+
 export default function Navbar() {
   const { dark, toggle } = useTheme()
   const total = useCart((s) => s.total())
   const { user, logout } = useAuth()
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [activeSection, setActiveSection] = useState('inicio')
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -20,37 +23,61 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
+  // Scroll-based section detection (only on landing page)
+  useEffect(() => {
+    if (location.pathname !== '/') { setActiveSection(''); return }
+
+    function update() {
+      const y = window.scrollY + window.innerHeight * 0.35
+      for (const id of SECTIONS) {
+        const el = document.getElementById(id)
+        if (el && y >= el.offsetTop) { setActiveSection(id); return }
+      }
+      setActiveSection('inicio')
+    }
+
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    return () => window.removeEventListener('scroll', update)
+  }, [location.pathname])
+
   const links = [
-    { to: '/',          label: 'Inicio' },
-    { to: '/#quienes',  label: 'Quiénes Somos' },
-    { to: '/productos', label: 'Catálogo' },
+    { to: '/#inicio',     label: 'Inicio',             section: 'inicio' },
+    { to: '/#quienes',    label: 'Quiénes Somos',      section: 'quienes' },
+    { to: '/#fabricamos', label: 'Qué Fabricamos',     section: 'fabricamos' },
+    { to: '/#porque',     label: 'Por qué Elegirnos',  section: 'porque' },
+    { to: '/productos',   label: 'Catálogo',            section: '' },
   ]
 
-  const isActive = (to: string) => {
-    if (to === '/') return location.pathname === '/'
-    const path = to.split('#')[0]
-    if (!path) return false
-    return location.pathname.startsWith(path)
+  const isActive = (l: { to: string; section: string }) => {
+    if (location.pathname === '/productos') return l.to === '/productos'
+    if (location.pathname === '/') {
+      if (!l.section) return false
+      return activeSection === l.section
+    }
+    return false
+  }
+
+  function scrollToSection(hash: string) {
+    if (hash === 'inicio') { window.scrollTo({ top: 0, behavior: 'smooth' }); return }
+    document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   function handleNavClick(to: string) {
     return (e: React.MouseEvent) => {
+      setOpen(false)
       const hashIdx = to.indexOf('#')
-      if (hashIdx === -1) { setOpen(false); return }
+      if (hashIdx === -1) return
 
       e.preventDefault()
       const basePath = to.slice(0, hashIdx) || '/'
       const hash = to.slice(hashIdx + 1)
 
-      setOpen(false)
-
       if (location.pathname === basePath) {
-        document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        scrollToSection(hash)
       } else {
         navigate(basePath)
-        setTimeout(() => {
-          document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }, 120)
+        setTimeout(() => scrollToSection(hash), 120)
       }
     }
   }
@@ -70,6 +97,12 @@ export default function Navbar() {
     </svg>
   )
 
+  const linkStyle = (active: boolean) => ({
+    color: active ? (dark ? '#7eb4f0' : 'var(--navy)') : 'var(--text-mid)',
+    fontWeight: active ? 700 : 500,
+    background: active ? 'var(--sky)' : 'transparent',
+  })
+
   return (
     <nav
       style={{
@@ -79,40 +112,48 @@ export default function Navbar() {
         borderBottom: '1px solid var(--border)',
         boxShadow: scrolled ? '0 2px 20px rgba(18,38,78,.15)' : 'var(--shadow-sm)',
         transition: 'background .3s, border-color .3s, box-shadow .3s',
-        display: 'flex', alignItems: 'center', padding: '0 40px', gap: '32px',
+        display: 'flex', alignItems: 'center', padding: '0 32px', gap: '24px',
       }}
     >
-      <Link to="/" className="flex-shrink-0 flex items-center" aria-label="AdherNeo inicio">
+      <Link to="/" onClick={handleNavClick('/#inicio')} className="flex-shrink-0 flex items-center" aria-label="AdherNeo inicio">
         <Logo height={48} dark={dark} />
       </Link>
 
       {/* Desktop links */}
-      <div className="hidden md:flex items-center gap-1 ml-auto">
-        {links.map((l) => (
+      <div className="hidden md:flex items-center gap-0.5 ml-auto">
+        {links.map((l) => {
+          const active = isActive(l)
+          return (
+            <Link
+              key={l.to}
+              to={l.to}
+              onClick={handleNavClick(l.to)}
+              className="px-3 py-2 rounded-lg text-[13px] transition-all duration-150 whitespace-nowrap"
+              style={linkStyle(active)}
+              onMouseEnter={(e) => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--sky)' }}
+              onMouseLeave={(e) => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+            >
+              {l.label}
+            </Link>
+          )
+        })}
+
+        {user?.role === 'admin' && (
           <Link
-            key={l.to}
-            to={l.to}
-            onClick={handleNavClick(l.to)}
-            className="px-3.5 py-2 rounded-lg text-sm transition-all duration-150"
+            to="/admin"
+            className="ml-1 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all duration-150"
             style={{
-              color: isActive(l.to) ? (dark ? 'var(--blue-light)' : 'var(--navy)') : 'var(--text-mid)',
-              fontWeight: isActive(l.to) ? 700 : 500,
-              background: isActive(l.to) ? 'var(--sky)' : 'transparent',
-            }}
-            onMouseEnter={(e) => {
-              if (!isActive(l.to)) (e.currentTarget as HTMLElement).style.background = 'var(--sky)'
-            }}
-            onMouseLeave={(e) => {
-              if (!isActive(l.to)) (e.currentTarget as HTMLElement).style.background = 'transparent'
+              color: location.pathname.startsWith('/admin') ? '#fff' : 'var(--blue)',
+              background: location.pathname.startsWith('/admin') ? 'var(--navy)' : 'var(--sky)',
             }}
           >
-            {l.label}
+            Admin
           </Link>
-        ))}
+        )}
 
         <Link
           to="/pedido"
-          className="ml-2 flex items-center gap-1.5 px-4 py-2 rounded-[9px] text-sm font-bold text-white transition-all duration-150"
+          className="ml-2 flex items-center gap-1.5 px-4 py-2 rounded-[9px] text-[13px] font-bold text-white transition-all duration-150"
           style={{ background: 'var(--navy)' }}
           onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy-deep)' }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy)' }}
@@ -178,21 +219,26 @@ export default function Navbar() {
           className="md:hidden flex flex-col gap-1 fixed left-0 right-0 p-4 pb-6 z-50"
           style={{ top: 'var(--nav-h)', background: 'var(--surface)', borderBottom: '1px solid var(--border)', boxShadow: 'var(--shadow)' }}
         >
-          {links.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              onClick={handleNavClick(l.to)}
-              className="px-4 py-2.5 rounded-lg text-sm font-medium"
-              style={{
-                color: isActive(l.to) ? (dark ? 'var(--blue-light)' : 'var(--navy)') : 'var(--text-mid)',
-                fontWeight: isActive(l.to) ? 700 : 500,
-                background: isActive(l.to) ? 'var(--sky)' : 'transparent',
-              }}
-            >
-              {l.label}
+          {links.map((l) => {
+            const active = isActive(l)
+            return (
+              <Link
+                key={l.to}
+                to={l.to}
+                onClick={handleNavClick(l.to)}
+                className="px-4 py-2.5 rounded-lg text-sm"
+                style={linkStyle(active)}
+              >
+                {l.label}
+              </Link>
+            )
+          })}
+          {user?.role === 'admin' && (
+            <Link to="/admin" onClick={() => setOpen(false)} className="px-4 py-2.5 rounded-lg text-sm font-semibold"
+              style={{ color: 'var(--blue)', background: 'var(--sky)' }}>
+              Admin
             </Link>
-          ))}
+          )}
           <Link
             to="/pedido"
             className="mt-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-[9px] text-sm font-bold text-white"

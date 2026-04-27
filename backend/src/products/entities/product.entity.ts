@@ -8,7 +8,7 @@ export class Product {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @Column({ length: 20, unique: true })
+  @Column({ length: 20 })
   code: string
 
   @Column({ length: 200 })
@@ -20,8 +20,14 @@ export class Product {
   @Column({ type: 'jsonb', default: [] })
   sizes: string[]
 
+  @Column({ type: 'text', nullable: true })
+  description: string | null
+
   @Column({ name: 'img_url', length: 300, nullable: true })
-  imgUrl: string
+  imgUrl: string | null
+
+  @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
+  price: number
 
   @Column({ name: 'is_active', default: true })
   isActive: boolean

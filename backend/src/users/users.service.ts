@@ -36,4 +36,9 @@ export class UsersService {
   findByEmail(email: string): Promise<User | null> {
     return this.repo.findOne({ where: { email } })
   }
+
+  async remove(id: string): Promise<void> {
+    await this.findOne(id)
+    await this.repo.delete(id)
+  }
 }

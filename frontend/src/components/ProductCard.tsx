@@ -87,7 +87,14 @@ export default function ProductCard({ product: p, onPreview }: Props) {
       {/* Body */}
       <div className="flex flex-col flex-1 px-3.5 pb-3.5 pt-2">
         <p className="text-[13px] font-bold leading-[1.35] mb-0.5" style={{ color: 'var(--text)' }}>{p.name}</p>
-        <p className="text-[11px] mb-2" style={{ color: 'var(--text-soft)' }}>{CAT_LABELS[p.cat] || p.cat}</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[11px]" style={{ color: 'var(--text-soft)' }}>{CAT_LABELS[p.cat] || p.cat}</p>
+          {p.price != null && (
+            <p className="text-[12px] font-bold" style={{ color: 'var(--blue)' }}>
+              ${p.price.toLocaleString('es-AR')}
+            </p>
+          )}
+        </div>
 
         {/* Size selector */}
         {p.universal && !p.variants ? (

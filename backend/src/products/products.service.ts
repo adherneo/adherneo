@@ -14,8 +14,9 @@ export class ProductsService {
     return this.repo.save(this.repo.create(dto))
   }
 
-  findAll(category?: string): Promise<Product[]> {
-    const where = category ? { category, isActive: true } : { isActive: true }
+  findAll(category?: string, includeAll = false): Promise<Product[]> {
+    const where: Record<string, unknown> = includeAll ? {} : { isActive: true }
+    if (category) where.category = category
     return this.repo.find({ where, order: { code: 'ASC' } })
   }
 
