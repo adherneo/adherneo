@@ -5,6 +5,9 @@ ETIQUETAS/
 # Claude Code workspace
 .claude/
 
+# JetBrains IDEs
+.idea/
+
 # Archivos temporales de Word y Windows
 ~$*
 *.tmp
