@@ -145,7 +145,12 @@ export default function AdminLabels() {
 
   function selectProduct(p: CatalogProduct) {
     setSelected(p)
-    setRows([makeFirstRow(p)])
+    if (p.variants && p.variants.length > 1) {
+      // pre-populate one row per variant so all are visible immediately
+      setRows(p.variants.map(v => ({ id: nextId(), value: v, qty: 1 })))
+    } else {
+      setRows([makeFirstRow(p)])
+    }
   }
 
   function addRow() {

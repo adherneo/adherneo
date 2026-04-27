@@ -138,31 +138,26 @@ export default function Products() {
             </select>
           </div>
 
-          {/* Category filter pills — scrollable on mobile */}
-          <div className="flex gap-1.5 mb-1.5 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
+          {/* Single merged filter bar */}
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
             {CATEGORIES.map((c) => (
               <button
                 key={c.id}
-                onClick={() => setFilter(c.id)}
-                className={`pill-filter flex-shrink-0 ${filter === c.id ? 'active' : ''}`}
+                onClick={() => { setFilter(c.id); setBodyPart('all') }}
+                className={`pill-filter flex-shrink-0 ${
+                  c.id === 'all'
+                    ? filter === 'all' && bodyPart === 'all' ? 'active' : ''
+                    : filter === c.id ? 'active' : ''
+                }`}
               >
                 {c.label}
               </button>
             ))}
-          </div>
-
-          {/* Body part filter pills — scrollable */}
-          <div className="flex gap-1.5 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
-            <button
-              onClick={() => setBodyPart('all')}
-              className={`pill-filter flex-shrink-0 ${bodyPart === 'all' ? 'active' : ''}`}
-            >
-              Todos
-            </button>
+            <span className="flex-shrink-0 w-px self-stretch my-0.5 mx-0.5" style={{ background: 'var(--border)' }} />
             {BODY_PARTS.map((bp) => (
               <button
                 key={bp.value}
-                onClick={() => setBodyPart(bp.value)}
+                onClick={() => { setBodyPart(bp.value); setFilter('all') }}
                 className={`pill-filter flex-shrink-0 ${bodyPart === bp.value ? 'active' : ''}`}
               >
                 {bp.label}
