@@ -78,7 +78,7 @@ export default function ProductModal({ product: p, onClose }: Props) {
         <div
           className="relative flex-shrink-0 overflow-hidden"
           style={{
-            width: '42%',
+            width: '55%',
             minHeight: 420,
             background: 'var(--bg)',
             borderRadius: '18px 0 0 18px',
