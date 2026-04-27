@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Landing from './pages/Landing'
 import Products from './pages/Products'
 import Order from './pages/Order'
+import MyOrders from './pages/MyOrders'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import AdminLayout from './pages/admin/AdminLayout'
@@ -16,9 +17,10 @@ export default function App() {
       <Routes>
         <Route path="/login"    element={<Login />} />
         <Route path="/registro" element={<Register />} />
-        <Route path="/" element={<ProtectedRoute><Landing /></ProtectedRoute>} />
-        <Route path="/productos" element={<ProtectedRoute><Products /></ProtectedRoute>} />
-        <Route path="/pedido" element={<ProtectedRoute><Order /></ProtectedRoute>} />
+        <Route path="/"         element={<Landing />} />
+        <Route path="/productos" element={<Products />} />
+        <Route path="/pedido"   element={<ProtectedRoute><Order /></ProtectedRoute>} />
+        <Route path="/mis-pedidos" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
         <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
           <Route index element={<Navigate to="usuarios" replace />} />
           <Route path="usuarios"  element={<AdminUsers />} />

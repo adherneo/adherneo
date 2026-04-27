@@ -36,6 +36,14 @@ export class OrdersService {
     return this.orderRepo.find({ order: { createdAt: 'DESC' }, relations: ['items'] })
   }
 
+  findByUser(userId: string): Promise<Order[]> {
+    return this.orderRepo.find({
+      where: { user: { id: userId } },
+      order: { createdAt: 'DESC' },
+      relations: ['items'],
+    })
+  }
+
   async findOne(id: string): Promise<Order> {
     const order = await this.orderRepo.findOne({ where: { id }, relations: ['items'] })
     if (!order) throw new NotFoundException('Order not found')

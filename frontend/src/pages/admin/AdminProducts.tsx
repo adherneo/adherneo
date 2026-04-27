@@ -435,7 +435,8 @@ function ProductTable({ products, onEdit, onDelete, onReactivate }: {
 }) {
   return (
     <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}>
-      <table className="w-full">
+      <div className="overflow-x-auto">
+      <table className="w-full" style={{ minWidth: 580 }}>
         <thead>
           <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}>
             {['Código','Nombre','Categoría','Talles','Precio',''].map((h) => (
@@ -493,6 +494,7 @@ function ProductTable({ products, onEdit, onDelete, onReactivate }: {
       {products.length === 0 && (
         <p className="text-center py-8 text-[13px]" style={{ color: 'var(--text-soft)' }}>Sin productos.</p>
       )}
+      </div>
     </div>
   )
 }

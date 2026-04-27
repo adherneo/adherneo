@@ -5,7 +5,7 @@ import { useTheme } from '../store/theme'
 import { useCart } from '../store/cart'
 import { useAuth } from '../store/auth'
 
-const SECTIONS = ['porque', 'fabricamos', 'quienes', 'inicio'] // bottom-to-top for scroll lookup
+const SECTIONS = ['porque', 'fabricamos', 'quienes', 'inicio']
 
 export default function Navbar() {
   const { dark, toggle } = useTheme()
@@ -23,10 +23,8 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
-  // Scroll-based section detection (only on landing page)
   useEffect(() => {
     if (location.pathname !== '/') { setActiveSection(''); return }
-
     function update() {
       const y = window.scrollY + window.innerHeight * 0.35
       for (const id of SECTIONS) {
@@ -35,18 +33,17 @@ export default function Navbar() {
       }
       setActiveSection('inicio')
     }
-
     update()
     window.addEventListener('scroll', update, { passive: true })
     return () => window.removeEventListener('scroll', update)
   }, [location.pathname])
 
   const links = [
-    { to: '/#inicio',     label: 'Inicio',             section: 'inicio' },
-    { to: '/#quienes',    label: 'Quiénes Somos',      section: 'quienes' },
-    { to: '/#fabricamos', label: 'Qué Fabricamos',     section: 'fabricamos' },
-    { to: '/#porque',     label: 'Por qué Elegirnos',  section: 'porque' },
-    { to: '/productos',   label: 'Catálogo',            section: '' },
+    { to: '/#inicio',     label: 'Inicio',            section: 'inicio' },
+    { to: '/#quienes',    label: 'Quiénes Somos',     section: 'quienes' },
+    { to: '/#fabricamos', label: 'Qué Fabricamos',    section: 'fabricamos' },
+    { to: '/#porque',     label: 'Por qué Elegirnos', section: 'porque' },
+    { to: '/productos',   label: 'Catálogo',           section: '' },
   ]
 
   const isActive = (l: { to: string; section: string }) => {
@@ -68,11 +65,9 @@ export default function Navbar() {
       setOpen(false)
       const hashIdx = to.indexOf('#')
       if (hashIdx === -1) return
-
       e.preventDefault()
       const basePath = to.slice(0, hashIdx) || '/'
       const hash = to.slice(hashIdx + 1)
-
       if (location.pathname === basePath) {
         scrollToSection(hash)
       } else {
@@ -82,26 +77,58 @@ export default function Navbar() {
     }
   }
 
-  const CartIcon = () => (
-    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-    </svg>
-  )
-
-  const LogoutIcon = () => (
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-      <polyline points="16 17 21 12 16 7"/>
-      <line x1="21" y1="12" x2="9" y2="12"/>
-    </svg>
-  )
-
-  const linkStyle = (active: boolean) => ({
-    color: active ? (dark ? '#7eb4f0' : 'var(--navy)') : 'var(--text-mid)',
-    fontWeight: active ? 700 : 500,
+  const linkCls = (active: boolean) =>
+    `px-3 py-1.5 rounded-lg text-[13px] transition-all duration-150 whitespace-nowrap ${active ? 'font-bold' : 'font-medium'}`
+  const linkStyle = (active: boolean): React.CSSProperties => ({
+    color: active ? 'var(--navy)' : 'var(--text-mid)',
     background: active ? 'var(--sky)' : 'transparent',
   })
+
+  const ThemeBtn = () => (
+    <button
+      onClick={toggle}
+      className="w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-150 flex-shrink-0"
+      style={{ border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', color: 'var(--text-mid)' }}
+      aria-label="Cambiar tema"
+      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--sky)' }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+    >
+      {dark ? (
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      )}
+    </button>
+  )
+
+  const CartBtn = ({ mobile = false }: { mobile?: boolean }) => (
+    <Link
+      to="/pedido"
+      onClick={() => setOpen(false)}
+      className="flex items-center gap-1.5 rounded-[9px] font-bold text-white transition-all duration-150 flex-shrink-0"
+      style={{
+        background: 'var(--navy)',
+        padding: mobile ? '8px 14px' : '7px 14px',
+        fontSize: mobile ? 14 : 13,
+      }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy-deep)' }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy)' }}
+    >
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+      </svg>
+      {mobile ? `Carrito (${total})` : total}
+    </Link>
+  )
 
   return (
     <nav
@@ -112,15 +139,19 @@ export default function Navbar() {
         borderBottom: '1px solid var(--border)',
         boxShadow: scrolled ? '0 2px 20px rgba(18,38,78,.15)' : 'var(--shadow-sm)',
         transition: 'background .3s, border-color .3s, box-shadow .3s',
-        display: 'flex', alignItems: 'center', padding: '0 32px', gap: '24px',
+        display: 'flex', alignItems: 'center', padding: '0 24px', gap: 0,
       }}
     >
-      <Link to="/" onClick={handleNavClick('/#inicio')} className="flex-shrink-0 flex items-center" aria-label="AdherNeo inicio">
-        <Logo height={48} dark={dark} />
+      {/* Logo */}
+      <Link to="/" onClick={handleNavClick('/#inicio')} className="flex-shrink-0 flex items-center mr-3" aria-label="AdherNeo inicio">
+        <Logo height={46} dark={dark} />
       </Link>
 
-      {/* Desktop links */}
-      <div className="hidden md:flex items-center gap-0.5 ml-auto">
+      {/* Divider | */}
+      <span className="hidden md:block w-px h-5 flex-shrink-0 mr-3" style={{ background: 'var(--border)' }} />
+
+      {/* Desktop nav links — LEFT side */}
+      <div className="hidden md:flex items-center gap-0.5">
         {links.map((l) => {
           const active = isActive(l)
           return (
@@ -128,7 +159,7 @@ export default function Navbar() {
               key={l.to}
               to={l.to}
               onClick={handleNavClick(l.to)}
-              className="px-3 py-2 rounded-lg text-[13px] transition-all duration-150 whitespace-nowrap"
+              className={linkCls(active)}
               style={linkStyle(active)}
               onMouseEnter={(e) => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--sky)' }}
               onMouseLeave={(e) => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
@@ -137,11 +168,10 @@ export default function Navbar() {
             </Link>
           )
         })}
-
         {user?.role === 'admin' && (
           <Link
             to="/admin"
-            className="ml-1 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all duration-150"
+            className="ml-1 px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-all duration-150 whitespace-nowrap"
             style={{
               color: location.pathname.startsWith('/admin') ? '#fff' : 'var(--blue)',
               background: location.pathname.startsWith('/admin') ? 'var(--navy)' : 'var(--sky)',
@@ -150,73 +180,87 @@ export default function Navbar() {
             Admin
           </Link>
         )}
+      </div>
 
-        <Link
-          to="/pedido"
-          className="ml-2 flex items-center gap-1.5 px-4 py-2 rounded-[9px] text-[13px] font-bold text-white transition-all duration-150"
-          style={{ background: 'var(--navy)' }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy-deep)' }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy)' }}
-        >
-          <CartIcon />
-          Carrito ({total})
-        </Link>
+      {/* Spacer */}
+      <div className="hidden md:block flex-1" />
 
-        {user && (
-          <button
-            onClick={() => { logout(); navigate('/login') }}
-            className="ml-1 flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-soft)' }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text)'; (e.currentTarget as HTMLElement).style.background = 'var(--sky)' }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-soft)'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-            title={`Salir (${user.name})`}
-          >
-            <LogoutIcon />
-          </button>
+      {/* Desktop right area */}
+      <div className="hidden md:flex items-center gap-2">
+        <ThemeBtn />
+        <CartBtn />
+
+        {/* Thin separator */}
+        <span className="w-px h-5 flex-shrink-0 mx-1" style={{ background: 'var(--border)' }} />
+
+        {user ? (
+          <>
+            <Link
+              to="/mis-pedidos"
+              className="px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150 whitespace-nowrap"
+              style={{ color: 'var(--text-mid)', background: 'transparent' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--sky)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--text-mid)' }}
+            >
+              Mis pedidos
+            </Link>
+            <span className="text-[13px] font-semibold px-2 whitespace-nowrap" style={{ color: 'var(--text-mid)' }}>
+              {user.name.split(' ')[0]}
+            </span>
+            <button
+              onClick={() => { logout(); navigate('/') }}
+              className="px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150 whitespace-nowrap"
+              style={{ background: 'none', border: '1px solid var(--border)', cursor: 'pointer', color: 'var(--text-soft)' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--sky)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--text-soft)' }}
+            >
+              Salir
+            </button>
+          </>
+        ) : (
+          <>
+            <Link
+              to="/login"
+              className="px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-all duration-150 whitespace-nowrap"
+              style={{ background: 'none', border: '1px solid var(--border)', color: 'var(--text-mid)', cursor: 'pointer' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--sky)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--blue)'; (e.currentTarget as HTMLElement).style.color = 'var(--blue)' }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-mid)' }}
+            >
+              Iniciar sesión
+            </Link>
+            <Link
+              to="/registro"
+              className="px-3 py-1.5 rounded-lg text-[13px] font-bold text-white transition-all duration-150 whitespace-nowrap"
+              style={{ background: 'var(--navy)', border: 'none' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy-deep)' }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy)' }}
+            >
+              Registrarse
+            </Link>
+          </>
         )}
       </div>
 
-      {/* Theme toggle */}
-      <button
-        onClick={toggle}
-        className="ml-2 w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-150 flex-shrink-0"
-        style={{ border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', color: 'var(--text-mid)' }}
-        aria-label="Cambiar tema"
-        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--sky)' }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-      >
-        {dark ? (
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="5"/>
-            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-          </svg>
-        ) : (
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-          </svg>
-        )}
-      </button>
+      {/* Mobile: theme + burger */}
+      <div className="md:hidden flex items-center gap-2 ml-auto">
+        <ThemeBtn />
+        <button
+          className="flex flex-col justify-center gap-[5px] p-1 w-9 h-9"
+          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-label="Menú"
+        >
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="block h-0.5 w-full rounded-sm" style={{ background: 'var(--text)' }} />
+          ))}
+        </button>
+      </div>
 
-      {/* Burger */}
-      <button
-        className="md:hidden ml-auto flex flex-col justify-center gap-[5px] p-1 w-9 h-9"
-        style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-label="Menú"
-      >
-        {[0, 1, 2].map((i) => (
-          <span key={i} className="block h-0.5 w-full rounded-sm" style={{ background: 'var(--text)' }} />
-        ))}
-      </button>
-
-      {/* Mobile menu */}
+      {/* Mobile dropdown */}
       {open && (
         <div
-          className="md:hidden flex flex-col gap-1 fixed left-0 right-0 p-4 pb-6 z-50"
+          className="md:hidden flex flex-col gap-1 fixed left-0 right-0 p-4 pb-5 z-50"
           style={{ top: 'var(--nav-h)', background: 'var(--surface)', borderBottom: '1px solid var(--border)', boxShadow: 'var(--shadow)' }}
         >
           {links.map((l) => {
@@ -226,7 +270,7 @@ export default function Navbar() {
                 key={l.to}
                 to={l.to}
                 onClick={handleNavClick(l.to)}
-                className="px-4 py-2.5 rounded-lg text-sm"
+                className="px-4 py-2.5 rounded-lg text-[14px]"
                 style={linkStyle(active)}
               >
                 {l.label}
@@ -234,29 +278,43 @@ export default function Navbar() {
             )
           })}
           {user?.role === 'admin' && (
-            <Link to="/admin" onClick={() => setOpen(false)} className="px-4 py-2.5 rounded-lg text-sm font-semibold"
+            <Link to="/admin" onClick={() => setOpen(false)} className="px-4 py-2.5 rounded-lg text-[14px] font-semibold"
               style={{ color: 'var(--blue)', background: 'var(--sky)' }}>
               Admin
             </Link>
           )}
-          <Link
-            to="/pedido"
-            className="mt-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-[9px] text-sm font-bold text-white"
-            style={{ background: 'var(--navy)' }}
-            onClick={() => setOpen(false)}
-          >
-            <CartIcon />
-            Carrito ({total})
-          </Link>
-          {user && (
-            <button
-              onClick={() => { setOpen(false); logout(); navigate('/login') }}
-              className="mt-1 flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-soft)', textAlign: 'left' }}
-            >
-              <LogoutIcon />
-              Salir ({user.name})
-            </button>
+
+          <div className="my-1 h-px" style={{ background: 'var(--border)' }} />
+          <CartBtn mobile />
+
+          {user ? (
+            <>
+              <Link to="/mis-pedidos" onClick={() => setOpen(false)}
+                className="px-4 py-2.5 rounded-lg text-[14px] font-medium"
+                style={{ color: 'var(--text-mid)' }}>
+                Mis pedidos
+              </Link>
+              <button
+                onClick={() => { setOpen(false); logout(); navigate('/') }}
+                className="px-4 py-2.5 rounded-lg text-[14px] font-medium text-left"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-soft)' }}
+              >
+                Salir ({user.name})
+              </button>
+            </>
+          ) : (
+            <div className="flex gap-2 mt-1">
+              <Link to="/login" onClick={() => setOpen(false)}
+                className="flex-1 text-center py-2.5 rounded-lg text-[14px] font-semibold"
+                style={{ border: '1.5px solid var(--border)', color: 'var(--text-mid)' }}>
+                Iniciar sesión
+              </Link>
+              <Link to="/registro" onClick={() => setOpen(false)}
+                className="flex-1 text-center py-2.5 rounded-lg text-[14px] font-bold text-white"
+                style={{ background: 'var(--navy)' }}>
+                Registrarse
+              </Link>
+            </div>
           )}
         </div>
       )}

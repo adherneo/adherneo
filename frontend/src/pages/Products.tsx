@@ -58,15 +58,15 @@ export default function Products() {
 
         {/* ── Sticky catalog bar ── */}
         <div
-          className="sticky z-[900] px-10 pt-2.5 pb-2"
+          className="sticky z-[900] px-3 md:px-8 pt-2.5 pb-2"
           style={{ top: 'var(--nav-h)', background: 'var(--surface)', borderBottom: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(18,38,78,.07)' }}
         >
-          {/* Top row */}
-          <div className="flex items-center gap-2.5 mb-2">
+          {/* Row 1: back + search + [desktop: sort + pedido] [mobile: cart icon] */}
+          <div className="flex items-center gap-2 mb-2">
             <Link
               to="/"
               className="flex items-center p-1.5 rounded-[7px] transition-all duration-150 flex-shrink-0"
-              style={{ color: 'var(--text-mid)', background: 'none', border: 'none' }}
+              style={{ color: 'var(--text-mid)' }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--sky)'; (e.currentTarget as HTMLElement).style.color = 'var(--navy)' }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = 'var(--text-mid)' }}
             >
@@ -83,25 +83,26 @@ export default function Products() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Buscar por nombre o código…"
+                placeholder="Buscar…"
                 className="form-input pl-9"
               />
             </div>
 
+            {/* Desktop: sort + pedido */}
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
-              className="form-input flex-shrink-0"
-              style={{ width: 'auto', minWidth: 160 }}
+              className="form-input hidden md:block flex-shrink-0"
+              style={{ width: 'auto', minWidth: 150 }}
             >
-              <option value="code">Ordenar por código</option>
-              <option value="name">Ordenar por nombre</option>
+              <option value="code">Por código</option>
+              <option value="name">Por nombre</option>
               <option value="cat">Por categoría</option>
             </select>
 
             <Link
               to="/pedido"
-              className="flex items-center gap-2 px-4 py-2 rounded-[9px] text-[13px] font-bold text-white flex-shrink-0 transition-all duration-150"
+              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-[9px] text-[13px] font-bold text-white flex-shrink-0 transition-all duration-150"
               style={{ background: 'var(--navy)' }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy-deep)' }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy)' }}
@@ -109,26 +110,52 @@ export default function Products() {
               Realizar Pedido
               <span className="px-2 py-0.5 rounded-full text-[12px] font-bold" style={{ background: 'rgba(255,255,255,.22)' }}>{total}</span>
             </Link>
+
+            {/* Mobile: compact cart */}
+            <Link
+              to="/pedido"
+              className="md:hidden flex items-center gap-1.5 px-3 py-2 rounded-[9px] text-[13px] font-bold text-white flex-shrink-0 transition-all duration-150"
+              style={{ background: 'var(--navy)' }}
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+              {total}
+            </Link>
           </div>
 
-          {/* Category filter pills */}
-          <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+          {/* Row 2 (mobile only): sort select */}
+          <div className="md:hidden mb-2">
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              className="form-input w-full"
+            >
+              <option value="code">Ordenar por código</option>
+              <option value="name">Ordenar por nombre</option>
+              <option value="cat">Por categoría</option>
+            </select>
+          </div>
+
+          {/* Category filter pills — scrollable on mobile */}
+          <div className="flex gap-1.5 mb-1.5 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
             {CATEGORIES.map((c) => (
               <button
                 key={c.id}
                 onClick={() => setFilter(c.id)}
-                className={`pill-filter ${filter === c.id ? 'active' : ''}`}
+                className={`pill-filter flex-shrink-0 ${filter === c.id ? 'active' : ''}`}
               >
                 {c.label}
               </button>
             ))}
           </div>
 
-          {/* Body part filter pills + count */}
-          <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Body part filter pills — scrollable */}
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
             <button
               onClick={() => setBodyPart('all')}
-              className={`pill-filter ${bodyPart === 'all' ? 'active' : ''}`}
+              className={`pill-filter flex-shrink-0 ${bodyPart === 'all' ? 'active' : ''}`}
             >
               Todos
             </button>
@@ -136,13 +163,13 @@ export default function Products() {
               <button
                 key={bp.value}
                 onClick={() => setBodyPart(bp.value)}
-                className={`pill-filter ${bodyPart === bp.value ? 'active' : ''}`}
+                className={`pill-filter flex-shrink-0 ${bodyPart === bp.value ? 'active' : ''}`}
               >
                 {bp.label}
               </button>
             ))}
             {!loading && (
-              <span className="text-[12px] ml-auto hidden md:block" style={{ color: 'var(--text-soft)', whiteSpace: 'nowrap' }}>
+              <span className="text-[12px] ml-auto pl-3 hidden md:block flex-shrink-0 self-center" style={{ color: 'var(--text-soft)', whiteSpace: 'nowrap' }}>
                 {list.length === products.length ? `${products.length} productos` : `${list.length} / ${products.length}`}
               </span>
             )}
@@ -150,7 +177,7 @@ export default function Products() {
         </div>
 
         {/* ── Grid ── */}
-        <main className="max-w-[1280px] mx-auto px-10 pt-6 pb-20">
+        <main className="max-w-[1280px] mx-auto px-3 md:px-8 pt-6 pb-20">
           {loading ? (
             <div className="flex justify-center items-center py-24">
               <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="animate-spin" style={{ color: 'var(--text-soft)' }}>

@@ -30,37 +30,37 @@ export default function AdminLayout() {
           background: 'var(--surface)',
           borderBottom: '1px solid var(--border)',
           boxShadow: 'var(--shadow-sm)',
-          display: 'flex', alignItems: 'center', gap: 24,
-          padding: '0 32px', height: 'var(--nav-h)',
         }}
       >
-        <Logo height={44} dark={dark} />
-        <span
-          className="text-[11px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full"
-          style={{ background: 'var(--sky-mid)', color: 'var(--navy)' }}
-        >
-          Admin
-        </span>
-
-        <nav className="flex items-center gap-1 ml-4">
-          <NavLink to="/admin/usuarios" style={({ isActive }) => tabStyle(isActive)}>
-            Usuarios
-          </NavLink>
-          <NavLink to="/admin/productos" style={({ isActive }) => tabStyle(isActive)}>
-            Productos
-          </NavLink>
-        </nav>
-
-        <div className="flex items-center gap-2 ml-auto">
-          <NavLink
-            to="/"
-            className="text-[13px] px-3 py-2 rounded-lg transition-all duration-150"
-            style={{ color: 'var(--text-soft)', textDecoration: 'none' }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--sky)' }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+        {/* Main row */}
+        <div className="flex items-center gap-3 px-4 md:px-8" style={{ height: 'var(--nav-h)' }}>
+          <Logo height={40} dark={dark} />
+          <span
+            className="hidden sm:inline text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full flex-shrink-0"
+            style={{ background: 'var(--sky-mid)', color: 'var(--navy)' }}
           >
-            ← Ir al sitio
-          </NavLink>
+            Admin
+          </span>
+
+          <nav className="flex items-center gap-1 ml-2">
+            <NavLink to="/admin/usuarios" style={({ isActive }) => tabStyle(isActive)}>
+              Usuarios
+            </NavLink>
+            <NavLink to="/admin/productos" style={({ isActive }) => tabStyle(isActive)}>
+              Productos
+            </NavLink>
+          </nav>
+
+          <div className="flex items-center gap-2 ml-auto">
+            <NavLink
+              to="/"
+              className="hidden sm:block text-[13px] px-3 py-2 rounded-lg transition-all duration-150"
+              style={{ color: 'var(--text-soft)', textDecoration: 'none' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--sky)' }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+            >
+              ← Ir al sitio
+            </NavLink>
 
           <button
             onClick={toggle}
@@ -100,11 +100,12 @@ export default function AdminLayout() {
               {user.name}
             </button>
           )}
+          </div>
         </div>
       </header>
 
       {/* Content */}
-      <main className="max-w-[1200px] mx-auto px-8 py-8">
+      <main className="max-w-[1200px] mx-auto px-3 md:px-8 py-6 md:py-8">
         <Outlet />
       </main>
     </div>

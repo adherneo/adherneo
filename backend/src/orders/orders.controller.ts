@@ -17,6 +17,11 @@ export class OrdersController {
     return this.svc.findAll()
   }
 
+  @Get('by-user/:userId')
+  findByUser(@Param('userId') userId: string) {
+    return this.svc.findByUser(userId)
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.svc.findOne(id)
