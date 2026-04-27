@@ -1,5 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { ApiProduct } from '../../types'
+
+async function uploadImage(file: File): Promise<string> {
+  const fd = new FormData()
+  fd.append('file', file)
+  const res = await fetch('/api/upload/image', { method: 'POST', body: fd })
+  if (!res.ok) {
+    const msg = await res.text().catch(() => 'Error desconocido')
+    throw new Error(msg)
+  }
+  const data = await res.json()
+  return data.url as string
+}
 
 const CATS = ['rodilleras','tobilleras','munequeras','coderas','fajas','inmovilizadores','otros']
 
@@ -19,6 +31,9 @@ export default function AdminProducts() {
   const [form, setForm]        = useState<FormData>(EMPTY_FORM)
   const [saving, setSaving]    = useState(false)
   const [formError, setFormError] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [imgPreview, setImgPreview] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   function load() {
     setLoading(true)
@@ -34,6 +49,7 @@ export default function AdminProducts() {
     setEditing(null)
     setForm(EMPTY_FORM)
     setFormError('')
+    setImgPreview(null)
     setModal('add')
   }
 
@@ -50,7 +66,24 @@ export default function AdminProducts() {
       isActive: p.isActive,
     })
     setFormError('')
+    setImgPreview(p.imgUrl || null)
     setModal('edit')
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImgPreview(URL.createObjectURL(file))
+    setUploading(true)
+    try {
+      const url = await uploadImage(file)
+      setForm((f) => ({ ...f, imgUrl: url }))
+      setImgPreview(url)
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : 'No se pudo subir la imagen.')
+    } finally {
+      setUploading(false)
+    }
   }
 
   function set(key: keyof FormData) {
@@ -217,9 +250,61 @@ export default function AdminProducts() {
                 <textarea className="form-input resize-y" value={form.description} onChange={set('description')} placeholder="Descripción del producto…" style={{ height: 72 }} disabled={saving} />
               </Field>
 
-              <Field label="URL de imagen">
-                <input className="form-input" value={form.imgUrl} onChange={set('imgUrl')} placeholder="https://…" disabled={saving} />
-              </Field>
+              {/* Image picker */}
+              <div>
+                <label className="block text-[11px] font-semibold mb-1 tracking-[.02em]" style={{ color: 'var(--text-mid)' }}>
+                  Imagen del producto
+                </label>
+                <div className="flex gap-3 items-start">
+                  {/* Preview */}
+                  <div
+                    className="flex-shrink-0 w-16 h-16 rounded-[10px] flex items-center justify-center overflow-hidden cursor-pointer"
+                    style={{ border: '1.5px dashed var(--border)', background: 'var(--bg)' }}
+                    onClick={() => fileRef.current?.click()}
+                    title="Seleccionar imagen"
+                  >
+                    {uploading ? (
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="animate-spin" style={{ color: 'var(--text-soft)' }}>
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                      </svg>
+                    ) : imgPreview ? (
+                      <img src={imgPreview} alt="preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-soft)' }}>
+                        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21 15 16 10 5 21"/>
+                      </svg>
+                    )}
+                  </div>
+
+                  <div className="flex-1 flex flex-col gap-2">
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileChange}
+                      disabled={saving || uploading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      disabled={saving || uploading}
+                      className="w-full py-2 rounded-[8px] text-[12px] font-semibold transition-all duration-150"
+                      style={{ border: '1.5px solid var(--border)', background: 'var(--bg)', color: 'var(--text-mid)', cursor: 'pointer' }}
+                    >
+                      {uploading ? 'Subiendo…' : 'Seleccionar imagen'}
+                    </button>
+                    <input
+                      className="form-input text-[12px]"
+                      value={form.imgUrl}
+                      onChange={set('imgUrl')}
+                      placeholder="O pegá una URL directamente…"
+                      disabled={saving || uploading}
+                    />
+                  </div>
+                </div>
+              </div>
 
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.isActive}

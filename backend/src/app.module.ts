@@ -7,6 +7,7 @@ import { ProductsModule } from './products/products.module'
 import { OrdersModule } from './orders/orders.module'
 import { AuthModule } from './auth/auth.module'
 import { SeedModule } from './seed/seed.module'
+import { UploadModule } from './upload/upload.module'
 
 @Module({
   controllers: [AppController],
@@ -31,6 +32,7 @@ import { SeedModule } from './seed/seed.module'
     OrdersModule,
     AuthModule,
     SeedModule,
+    UploadModule,
   ],
 })
 export class AppModule {}
