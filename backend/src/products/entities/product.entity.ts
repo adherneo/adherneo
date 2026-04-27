@@ -20,10 +20,10 @@ export class Product {
   @Column({ type: 'jsonb', default: [] })
   sizes: string[]
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, default: null })
   description: string | null
 
-  @Column({ name: 'img_url', length: 300, nullable: true })
+  @Column({ name: 'img_url', type: 'varchar', length: 300, nullable: true, default: null })
   imgUrl: string | null
 
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
