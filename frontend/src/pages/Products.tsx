@@ -47,7 +47,7 @@ export default function Products() {
     else if (sort === 'cat') result.sort((a, b) => a.cat.localeCompare(b.cat) || a.code.localeCompare(b.code))
     else result.sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }))
     return result
-  }, [products, filter, query, sort])
+  }, [products, filter, bodyPart, query, sort])
 
   const _ = CAT_LABELS // ensure import used
 
