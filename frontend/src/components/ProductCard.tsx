@@ -17,6 +17,7 @@ export default function ProductCard({ product: p, onPreview }: Props) {
   const [shake, setShake] = useState(false)
 
   const sizeLabel = (s: number | string) => typeof s === 'number' ? `T${s}` : String(s)
+  const firstImg = p.images?.[0] || p.img
 
   function handleAdd() {
     let size: string
@@ -51,41 +52,59 @@ export default function ProductCard({ product: p, onPreview }: Props) {
     >
       {/* Top accent bar */}
       <div
-        className="absolute top-0 left-0 right-0 h-[3px] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
+        className="absolute top-0 left-0 right-0 h-[3px] z-20 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
         style={{ background: 'linear-gradient(90deg,var(--navy),var(--blue))' }}
       />
 
-      {/* Image / Icon area */}
+      {/* Image area — fills top, fades into card surface */}
       <div
-        className="p-5 flex flex-col items-center cursor-pointer transition-all duration-150"
-        style={{ borderRadius: '12px 12px 0 0' }}
+        className="relative h-[160px] overflow-hidden flex-shrink-0 cursor-pointer"
         onClick={() => onPreview(p)}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--sky)' }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '' }}
       >
-        <div
-          className="w-[72px] h-[72px] flex items-center justify-center rounded-[18px] transition-all duration-200 group-hover:text-white"
-          style={{ background: 'linear-gradient(135deg,var(--sky),var(--sky-mid))', color: 'var(--text)' }}
-        >
-          {p.img
-            ? <img src={p.img} alt={p.name} className="w-[52px] h-[52px] object-cover rounded-[10px]" />
-            : <CatIcon cat={p.cat} size={36} />
-          }
-        </div>
-        <p className="mt-1.5 text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-150" style={{ color: 'var(--blue)' }}>
-          Vista rápida
-        </p>
-      </div>
+        {firstImg ? (
+          <img
+            src={firstImg}
+            alt={p.name}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg,var(--sky),var(--sky-mid))', color: 'var(--text)' }}
+          >
+            <CatIcon cat={p.cat} size={52} />
+          </div>
+        )}
 
-      {/* Code */}
-      <div className="text-center pb-1">
-        <span className="text-[15px] font-extrabold px-2.5 py-0.5 rounded-[5px]" style={{ fontFamily: 'Courier New,monospace', color: 'var(--blue)', background: 'var(--sky)' }}>
-          {p.code}
-        </span>
+        {/* Fade-to-surface gradient */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'linear-gradient(to bottom, transparent 30%, var(--surface) 95%)' }}
+        />
+
+        {/* "Vista rápida" hint on hover */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+          <span
+            className="px-3 py-1 rounded-full text-[11px] font-semibold text-white"
+            style={{ background: 'rgba(18,38,78,.55)', backdropFilter: 'blur(4px)' }}
+          >
+            Vista rápida
+          </span>
+        </div>
+
+        {/* Code badge at bottom of image */}
+        <div className="absolute bottom-2 left-3 z-10">
+          <span
+            className="text-[12px] font-extrabold px-2 py-0.5 rounded-[5px]"
+            style={{ fontFamily: 'Courier New,monospace', color: 'var(--blue)', background: 'var(--sky)' }}
+          >
+            {p.code}
+          </span>
+        </div>
       </div>
 
       {/* Body */}
-      <div className="flex flex-col flex-1 px-3.5 pb-3.5 pt-2">
+      <div className="flex flex-col flex-1 px-3.5 pb-3.5 pt-1">
         <p className="text-[13px] font-bold leading-[1.35] mb-0.5" style={{ color: 'var(--text)' }}>{p.name}</p>
         <div className="flex items-center justify-between mb-2">
           <p className="text-[11px]" style={{ color: 'var(--text-soft)' }}>{CAT_LABELS[p.cat] || p.cat}</p>

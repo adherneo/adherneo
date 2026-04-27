@@ -31,6 +31,14 @@ export class CreateProductDto {
   @Type(() => Number)
   price?: number
 
+  @IsArray()
+  @IsOptional()
+  images?: string[]
+
+  @IsArray()
+  @IsOptional()
+  bodyParts?: string[]
+
   @IsBoolean()
   @IsOptional()
   isActive?: boolean

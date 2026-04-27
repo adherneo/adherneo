@@ -6,14 +6,15 @@ import ProductCard from '../components/ProductCard'
 import ProductModal from '../components/ProductModal'
 import { CATEGORIES, CAT_LABELS } from '../data/catalog'
 import { useCart } from '../store/cart'
-import { mapApiProduct } from '../types'
+import { mapApiProduct, BODY_PARTS } from '../types'
 import type { Product, ApiProduct, SortKey } from '../types'
 
 export default function Products() {
   const [searchParams] = useSearchParams()
-  const [filter, setFilter] = useState(searchParams.get('filter') ?? 'all')
-  const [query, setQuery]   = useState('')
-  const [sort, setSort]     = useState<SortKey>('code')
+  const [filter, setFilter]       = useState(searchParams.get('filter') ?? 'all')
+  const [bodyPart, setBodyPart]   = useState('all')
+  const [query, setQuery]         = useState('')
+  const [sort, setSort]           = useState<SortKey>('code')
   const [preview, setPreview] = useState<Product | null>(null)
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading]  = useState(true)
@@ -37,9 +38,10 @@ export default function Products() {
   const list = useMemo(() => {
     const q = query.toLowerCase().trim()
     let result = products.filter((p) => {
-      const matchCat = filter === 'all' || p.cat === filter
-      const matchQ   = !q || p.code.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)
-      return matchCat && matchQ
+      const matchCat  = filter === 'all' || p.cat === filter
+      const matchPart = bodyPart === 'all' || (p.bodyParts?.includes(bodyPart) ?? false)
+      const matchQ    = !q || p.code.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)
+      return matchCat && matchPart && matchQ
     })
     if (sort === 'name') result.sort((a, b) => a.name.localeCompare(b.name, 'es'))
     else if (sort === 'cat') result.sort((a, b) => a.cat.localeCompare(b.cat) || a.code.localeCompare(b.code))
@@ -109,8 +111,8 @@ export default function Products() {
             </Link>
           </div>
 
-          {/* Filter pills + count */}
-          <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Category filter pills */}
+          <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
             {CATEGORIES.map((c) => (
               <button
                 key={c.id}
@@ -118,6 +120,25 @@ export default function Products() {
                 className={`pill-filter ${filter === c.id ? 'active' : ''}`}
               >
                 {c.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Body part filter pills + count */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <button
+              onClick={() => setBodyPart('all')}
+              className={`pill-filter ${bodyPart === 'all' ? 'active' : ''}`}
+            >
+              Todos
+            </button>
+            {BODY_PARTS.map((bp) => (
+              <button
+                key={bp.value}
+                onClick={() => setBodyPart(bp.value)}
+                className={`pill-filter ${bodyPart === bp.value ? 'active' : ''}`}
+              >
+                {bp.label}
               </button>
             ))}
             {!loading && (

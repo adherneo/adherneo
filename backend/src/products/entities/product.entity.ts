@@ -20,6 +20,12 @@ export class Product {
   @Column({ type: 'jsonb', default: [] })
   sizes: string[]
 
+  @Column({ type: 'jsonb', default: [] })
+  images: string[]
+
+  @Column({ name: 'body_parts', type: 'jsonb', default: [] })
+  bodyParts: string[]
+
   @Column({ type: 'text', nullable: true, default: null })
   description: string | null
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { BODY_PARTS } from '../../types'
 import type { ApiProduct } from '../../types'
 
 async function uploadImage(file: File): Promise<string> {
@@ -17,7 +18,9 @@ const CATS = ['rodilleras','tobilleras','munequeras','coderas','fajas','inmovili
 
 const EMPTY_FORM = {
   code: '', name: '', category: 'rodilleras', description: '',
-  sizes: '', price: '999999', imgUrl: '', isActive: true,
+  sizes: '', price: '999999', isActive: true,
+  images: [] as string[],
+  bodyParts: [] as string[],
 }
 
 type FormData = typeof EMPTY_FORM
@@ -32,7 +35,7 @@ export default function AdminProducts() {
   const [saving, setSaving]    = useState(false)
   const [formError, setFormError] = useState('')
   const [uploading, setUploading] = useState(false)
-  const [imgPreview, setImgPreview] = useState<string | null>(null)
+  const [urlInput, setUrlInput]   = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
   function load() {
@@ -49,41 +52,62 @@ export default function AdminProducts() {
     setEditing(null)
     setForm(EMPTY_FORM)
     setFormError('')
-    setImgPreview(null)
+    setUrlInput('')
     setModal('add')
   }
 
   function openEdit(p: ApiProduct) {
     setEditing(p)
     setForm({
-      code: p.code,
-      name: p.name,
-      category: p.category,
+      code:        p.code,
+      name:        p.name,
+      category:    p.category,
       description: p.description || '',
-      sizes: p.sizes.join(','),
-      price: String(p.price),
-      imgUrl: p.imgUrl || '',
-      isActive: p.isActive,
+      sizes:       p.sizes.join(','),
+      price:       String(p.price),
+      isActive:    p.isActive,
+      images:      p.images || [],
+      bodyParts:   p.bodyParts || [],
     })
     setFormError('')
-    setImgPreview(p.imgUrl || null)
+    setUrlInput('')
     setModal('edit')
   }
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    setImgPreview(URL.createObjectURL(file))
     setUploading(true)
+    setFormError('')
     try {
       const url = await uploadImage(file)
-      setForm((f) => ({ ...f, imgUrl: url }))
-      setImgPreview(url)
+      setForm((f) => ({ ...f, images: [...f.images, url] }))
     } catch (err: unknown) {
       setFormError(err instanceof Error ? err.message : 'No se pudo subir la imagen.')
     } finally {
       setUploading(false)
+      if (fileRef.current) fileRef.current.value = ''
     }
+  }
+
+  function addUrlImage() {
+    const url = urlInput.trim()
+    if (!url) return
+    setForm((f) => ({ ...f, images: [...f.images, url] }))
+    setUrlInput('')
+  }
+
+  function removeImage(idx: number) {
+    setForm((f) => ({ ...f, images: f.images.filter((_, i) => i !== idx) }))
+  }
+
+  function toggleBodyPart(value: string) {
+    setForm((f) => ({
+      ...f,
+      bodyParts: f.bodyParts.includes(value)
+        ? f.bodyParts.filter((v) => v !== value)
+        : [...f.bodyParts, value],
+    }))
   }
 
   function set(key: keyof FormData) {
@@ -103,8 +127,9 @@ export default function AdminProducts() {
       description: form.description.trim() || null,
       sizes:       form.sizes.split(',').map((s) => s.trim()).filter(Boolean),
       price:       Number(form.price) || 0,
-      imgUrl:      form.imgUrl.trim() || null,
       isActive:    form.isActive,
+      images:      form.images,
+      bodyParts:   form.bodyParts,
     }
 
     setSaving(true)
@@ -205,7 +230,7 @@ export default function AdminProducts() {
           <div
             className="w-full overflow-y-auto"
             style={{
-              maxWidth: 540, maxHeight: '90vh',
+              maxWidth: 580, maxHeight: '90vh',
               background: 'var(--surface)', border: '1px solid var(--border)',
               borderRadius: 18, boxShadow: '0 20px 60px rgba(18,38,78,.3)',
             }}
@@ -250,59 +275,112 @@ export default function AdminProducts() {
                 <textarea className="form-input resize-y" value={form.description} onChange={set('description')} placeholder="Descripción del producto…" style={{ height: 72 }} disabled={saving} />
               </Field>
 
-              {/* Image picker */}
+              {/* Body parts */}
               <div>
-                <label className="block text-[11px] font-semibold mb-1 tracking-[.02em]" style={{ color: 'var(--text-mid)' }}>
-                  Imagen del producto
+                <label className="block text-[11px] font-semibold mb-2 tracking-[.02em]" style={{ color: 'var(--text-mid)' }}>
+                  Zona del cuerpo
                 </label>
-                <div className="flex gap-3 items-start">
-                  {/* Preview */}
-                  <div
-                    className="flex-shrink-0 w-16 h-16 rounded-[10px] flex items-center justify-center overflow-hidden cursor-pointer"
-                    style={{ border: '1.5px dashed var(--border)', background: 'var(--bg)' }}
+                <div className="flex flex-wrap gap-2">
+                  {BODY_PARTS.map((bp) => {
+                    const active = form.bodyParts.includes(bp.value)
+                    return (
+                      <button
+                        key={bp.value}
+                        type="button"
+                        onClick={() => toggleBodyPart(bp.value)}
+                        disabled={saving}
+                        className="px-3 py-1 rounded-full text-[12px] font-semibold transition-all duration-150 cursor-pointer"
+                        style={{
+                          border: `1.5px solid ${active ? 'var(--navy)' : 'var(--border)'}`,
+                          background: active ? 'var(--navy)' : 'var(--bg)',
+                          color: active ? '#fff' : 'var(--text-mid)',
+                        }}
+                      >
+                        {bp.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Images */}
+              <div>
+                <label className="block text-[11px] font-semibold mb-2 tracking-[.02em]" style={{ color: 'var(--text-mid)' }}>
+                  Imágenes del producto
+                </label>
+
+                {/* Thumbnails */}
+                {form.images.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {form.images.map((url, idx) => (
+                      <div key={idx} className="relative w-16 h-16 rounded-[10px] overflow-hidden flex-shrink-0" style={{ border: '1.5px solid var(--border)' }}>
+                        <img src={url} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          disabled={saving}
+                          className="absolute top-0.5 right-0.5 w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold cursor-pointer"
+                          style={{ background: 'rgba(192,57,43,.85)', color: '#fff', border: 'none' }}
+                        >✕</button>
+                        {idx === 0 && (
+                          <div className="absolute bottom-0 left-0 right-0 text-center text-[9px] font-bold py-0.5 text-white" style={{ background: 'rgba(18,38,78,.65)' }}>
+                            Principal
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex gap-2 items-center">
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    disabled={saving || uploading}
+                  />
+                  <button
+                    type="button"
                     onClick={() => fileRef.current?.click()}
-                    title="Seleccionar imagen"
+                    disabled={saving || uploading}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-[8px] text-[12px] font-semibold transition-all duration-150 flex-shrink-0"
+                    style={{ border: '1.5px solid var(--border)', background: 'var(--bg)', color: 'var(--text-mid)', cursor: 'pointer' }}
                   >
                     {uploading ? (
-                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="animate-spin" style={{ color: 'var(--text-soft)' }}>
-                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                      </svg>
-                    ) : imgPreview ? (
-                      <img src={imgPreview} alt="preview" className="w-full h-full object-cover" />
+                      <>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="animate-spin"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                        Subiendo…
+                      </>
                     ) : (
-                      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-soft)' }}>
-                        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
-                        <polyline points="21 15 16 10 5 21"/>
-                      </svg>
+                      <>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        Subir imagen
+                      </>
                     )}
-                  </div>
-
-                  <div className="flex-1 flex flex-col gap-2">
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleFileChange}
-                      disabled={saving || uploading}
-                    />
+                  </button>
+                  <input
+                    className="form-input text-[12px] flex-1"
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addUrlImage() } }}
+                    placeholder="O pegá una URL y presioná Enter…"
+                    disabled={saving || uploading}
+                  />
+                  {urlInput.trim() && (
                     <button
                       type="button"
-                      onClick={() => fileRef.current?.click()}
-                      disabled={saving || uploading}
-                      className="w-full py-2 rounded-[8px] text-[12px] font-semibold transition-all duration-150"
-                      style={{ border: '1.5px solid var(--border)', background: 'var(--bg)', color: 'var(--text-mid)', cursor: 'pointer' }}
+                      onClick={addUrlImage}
+                      disabled={saving}
+                      className="px-3 py-2 rounded-[8px] text-[12px] font-semibold flex-shrink-0"
+                      style={{ background: 'var(--sky)', border: '1px solid var(--border)', color: 'var(--blue)', cursor: 'pointer' }}
                     >
-                      {uploading ? 'Subiendo…' : 'Seleccionar imagen'}
+                      Agregar
                     </button>
-                    <input
-                      className="form-input text-[12px]"
-                      value={form.imgUrl}
-                      onChange={set('imgUrl')}
-                      placeholder="O pegá una URL directamente…"
-                      disabled={saving || uploading}
-                    />
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -369,7 +447,12 @@ function ProductTable({ products, onEdit, onDelete, onReactivate }: {
           {products.map((p) => (
             <tr key={p.id} style={{ borderBottom: '1px solid var(--border)', opacity: p.isActive ? 1 : .5 }}>
               <td className="px-4 py-3">
-                <span className="text-[12px] font-extrabold px-2 py-0.5 rounded" style={{ fontFamily: 'monospace', color: 'var(--blue)', background: 'var(--sky)' }}>{p.code}</span>
+                <div className="flex items-center gap-2">
+                  {p.images?.[0] && (
+                    <img src={p.images[0]} alt="" className="w-8 h-8 rounded-[6px] object-cover flex-shrink-0" />
+                  )}
+                  <span className="text-[12px] font-extrabold px-2 py-0.5 rounded" style={{ fontFamily: 'monospace', color: 'var(--blue)', background: 'var(--sky)' }}>{p.code}</span>
+                </div>
               </td>
               <td className="px-4 py-3 text-[13px] font-semibold" style={{ color: 'var(--text)', maxWidth: 200 }}>
                 <span className="line-clamp-1">{p.name}</span>
