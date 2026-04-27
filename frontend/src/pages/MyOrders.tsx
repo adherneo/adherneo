@@ -65,93 +65,6 @@ export default function MyOrders() {
     return t > 0 ? t : null
   }
 
-  function printOrderInvoice(o: Order) {
-    const date = new Date(o.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
-    const rows = o.items.map(i => {
-      const sub = i.unitPrice ? `$${(Number(i.unitPrice) * i.quantity).toLocaleString('es-AR')}` : '—'
-      const unit = i.unitPrice ? `$${Number(i.unitPrice).toLocaleString('es-AR')}` : ''
-      return `<tr>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-family:monospace;font-size:12px;color:#12264e;font-weight:700">${i.productCode}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:13px">${i.productName}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:center;color:#666">${i.size}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:13px;text-align:center;font-weight:700">${i.quantity}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:right;color:#555">${unit}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:13px;text-align:right;font-weight:700;color:#12264e">${sub}</td>
-      </tr>`
-    }).join('')
-    const tot = orderTotal(o)
-    const totalRow = tot ? `<tr>
-      <td colspan="5" style="padding:10px 10px 6px;text-align:right;font-size:14px;font-weight:700;color:#333">Total estimado</td>
-      <td style="padding:10px 10px 6px;text-align:right;font-size:16px;font-weight:700;color:#12264e">$${tot.toLocaleString('es-AR')}</td>
-    </tr>` : ''
-    const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Pedido AdherNeo</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:#1a1a1a;padding:20mm}
-@page{size:A4;margin:15mm}
-@media print{body{padding:0}}
-.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #12264e;padding-bottom:14px;margin-bottom:20px}
-.logo-text{font-family:Georgia,serif;font-size:28px;font-weight:700;color:#12264e}
-.logo-sub{font-size:11px;color:#888;margin-top:3px;letter-spacing:.05em}
-.badge{background:#12264e;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase}
-.section{margin-bottom:18px}
-.section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:8px}
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px}
-.info-item label{font-size:10px;color:#888;display:block;margin-bottom:2px}
-.info-item span{font-size:13px;color:#1a1a1a}
-table{width:100%;border-collapse:collapse;margin-top:6px}
-thead tr{background:#f5f8ff}
-thead th{padding:8px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555}
-thead th:last-child,thead th:nth-child(4),thead th:nth-child(5){text-align:right}
-thead th:nth-child(3){text-align:center}
-.footer{margin-top:24px;padding-top:12px;border-top:1px solid #eee;font-size:11px;color:#aaa;text-align:center}
-.print-btn{position:fixed;bottom:20px;right:20px;background:#12264e;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:sans-serif}
-@media print{.print-btn{display:none}}
-</style></head><body>
-<div class="header">
-  <div><div class="logo-text">AdherNeo</div><div class="logo-sub">Productos ortopédicos</div></div>
-  <div style="text-align:right">
-    <div class="badge">Pedido</div>
-    <div style="font-size:11px;color:#888;margin-top:4px;font-family:monospace">#${o.id.slice(0, 8).toUpperCase()}</div>
-    <div style="font-size:12px;color:#888;margin-top:3px">${date}</div>
-  </div>
-</div>
-<div class="section">
-  <div class="section-title">Datos del cliente</div>
-  <div class="info-grid">
-    <div class="info-item"><label>Nombre</label><span>${o.customerName}</span></div>
-    <div class="info-item"><label>Email</label><span>${o.customerEmail}</span></div>
-    ${o.customerPhone ? `<div class="info-item"><label>Teléfono</label><span>${o.customerPhone}</span></div>` : ''}
-  </div>
-</div>
-<div class="section">
-  <div class="section-title">Artículos</div>
-  <table>
-    <thead><tr>
-      <th>Código</th><th>Producto</th><th style="text-align:center">Talle</th>
-      <th style="text-align:right">Cant.</th><th style="text-align:right">P. Unit.</th><th style="text-align:right">Subtotal</th>
-    </tr></thead>
-    <tbody>${rows}${totalRow}</tbody>
-  </table>
-</div>
-<div class="footer">AdherNeo · adherneo@hotmail.com · Este documento no es una factura oficial</div>
-<button class="print-btn" onclick="window.print()">Imprimir / Guardar PDF</button>
-</body></html>`
-    let iframe = document.getElementById('_invoice_frame') as HTMLIFrameElement | null
-    if (iframe) iframe.remove()
-    iframe = document.createElement('iframe')
-    iframe.id = '_invoice_frame'
-    iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;background:#fff'
-    document.body.appendChild(iframe)
-    iframe.srcdoc = html
-    iframe.onload = () => {
-      const close = document.createElement('button')
-      close.textContent = '✕ Cerrar'
-      close.style.cssText = 'position:fixed;top:14px;left:20px;z-index:10000;background:#c0392b;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:sans-serif'
-      close.onclick = () => { iframe!.remove(); close.remove() }
-      document.body.appendChild(close)
-    }
-  }
 
   return (
     <>
@@ -270,20 +183,6 @@ thead th:nth-child(3){text-align:center}
                               <p className="text-[13px]" style={{ color: 'var(--text-mid)' }}>{o.notes}</p>
                             </div>
                           )}
-                          <div className="mt-4 pt-3 flex justify-end" style={{ borderTop: '1px solid var(--border)' }}>
-                            <button
-                              onClick={() => printOrderInvoice(o)}
-                              className="flex items-center gap-1.5 px-3 py-2 rounded-[8px] text-[12px] font-semibold transition-all duration-150 cursor-pointer"
-                              style={{ background: 'var(--sky)', border: '1px solid var(--border)', color: 'var(--navy)' }}
-                              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--sky-mid)' }}
-                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--sky)' }}
-                            >
-                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
-                              </svg>
-                              Imprimir / PDF
-                            </button>
-                          </div>
                         </div>
                       </div>
                     )}

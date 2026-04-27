@@ -37,7 +37,7 @@ export interface ApiProduct {
 }
 
 export function mapApiProduct(p: ApiProduct): Product {
-  const universal = p.sizes.includes('UNIVERSAL')
+  const universal = p.sizes.length === 1 && p.sizes[0] === 'UNIVERSAL'
   const isNumericOrT = (s: string) => !isNaN(Number(s)) || /^T\d/.test(s)
   const areVariants = !universal && p.sizes.length > 0 && !p.sizes.every(isNumericOrT)
   const images = p.images?.length ? p.images : (p.imgUrl ? [p.imgUrl] : [])

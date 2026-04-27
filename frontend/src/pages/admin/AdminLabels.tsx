@@ -145,12 +145,7 @@ export default function AdminLabels() {
 
   function selectProduct(p: CatalogProduct) {
     setSelected(p)
-    if (p.variants && p.variants.length > 1) {
-      // pre-populate one row per variant so all are visible immediately
-      setRows(p.variants.map(v => ({ id: nextId(), value: v, qty: 1 })))
-    } else {
-      setRows([makeFirstRow(p)])
-    }
+    setRows([makeFirstRow(p)])
   }
 
   function addRow() {
@@ -264,7 +259,7 @@ body{font-family:'Times New Roman',Times,serif;background:#fff}
     ? selected.universal && !selected.variants
       ? 'Universal (sin talle)'
       : selected.variants
-        ? `Variantes: ${selected.variants.join(' · ')}`
+        ? `Talles: ${selected.variants.join(' · ')}`
         : `Talles: ${selected.sizes?.join(', ')}`
     : ''
 
@@ -359,7 +354,7 @@ body{font-family:'Times New Roman',Times,serif;background:#fff}
                       /* Variants: select + qty */
                       <>
                         <div className="flex-1">
-                          <label className="block text-[11px] font-semibold mb-1" style={{ color: 'var(--text-mid)' }}>Variante</label>
+                          <label className="block text-[11px] font-semibold mb-1" style={{ color: 'var(--text-mid)' }}>Talle</label>
                           <select className="form-input" value={row.value} onChange={e => updateRowValue(row.id, e.target.value)}>
                             {selected.variants!.map(v => <option key={v} value={v}>{v}</option>)}
                           </select>

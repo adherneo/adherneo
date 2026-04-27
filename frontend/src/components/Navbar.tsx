@@ -218,26 +218,15 @@ export default function Navbar() {
             </button>
           </>
         ) : (
-          <>
-            <Link
-              to="/login"
-              className="px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-all duration-150 whitespace-nowrap"
-              style={{ background: 'none', border: '1px solid var(--border)', color: 'var(--text-mid)', cursor: 'pointer' }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--sky)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--blue)'; (e.currentTarget as HTMLElement).style.color = 'var(--blue)' }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-mid)' }}
-            >
-              Iniciar sesión
-            </Link>
-            <Link
-              to="/registro"
-              className="px-3 py-1.5 rounded-lg text-[13px] font-bold text-white transition-all duration-150 whitespace-nowrap"
-              style={{ background: 'var(--navy)', border: 'none' }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy-deep)' }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy)' }}
-            >
-              Registrarse
-            </Link>
-          </>
+          <Link
+            to="/login"
+            className="px-3 py-1.5 rounded-lg text-[13px] font-bold text-white transition-all duration-150 whitespace-nowrap"
+            style={{ background: 'var(--navy)', border: 'none' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy-deep)' }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--navy)' }}
+          >
+            Acceder
+          </Link>
         )}
       </div>
 
@@ -303,18 +292,11 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            <div className="flex gap-2 mt-1">
-              <Link to="/login" onClick={() => setOpen(false)}
-                className="flex-1 text-center py-2.5 rounded-lg text-[14px] font-semibold"
-                style={{ border: '1.5px solid var(--border)', color: 'var(--text-mid)' }}>
-                Iniciar sesión
-              </Link>
-              <Link to="/registro" onClick={() => setOpen(false)}
-                className="flex-1 text-center py-2.5 rounded-lg text-[14px] font-bold text-white"
-                style={{ background: 'var(--navy)' }}>
-                Registrarse
-              </Link>
-            </div>
+            <Link to="/login" onClick={() => setOpen(false)}
+              className="text-center py-2.5 rounded-lg text-[14px] font-bold text-white mt-1"
+              style={{ background: 'var(--navy)' }}>
+              Acceder
+            </Link>
           )}
         </div>
       )}

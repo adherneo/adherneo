@@ -47,16 +47,54 @@ export default function Order() {
   const effectiveEmail = (user && !editEmail) ? user.email : email
 
   function buildEmailBody() {
-    const lines = items.map((item) => {
-      const priceStr = item.price ? ` — $${(item.price * item.qty).toLocaleString('es-AR')}` : ''
-      return `- ${item.code}. ${item.name} | ${item.size} × ${item.qty}${priceStr}`
-    })
-    let body = `Nuevo pedido de ${name}\nEmail: ${effectiveEmail}\n`
-    if (phone) body += `Teléfono: ${phone}\n`
-    body += `\nArtículos pedidos:\n${lines.join('\n')}\n\nTotal: ${n} artículo${n !== 1 ? 's' : ''}`
-    if (hasPrices) body += ` — Total estimado: $${subtotal.toLocaleString('es-AR')}`
-    if (notes) body += `\n\nNotas: ${notes}`
-    return body
+    const date = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
+    const rows = items.map(i => {
+      const sub = i.price ? `$${(i.price * i.qty).toLocaleString('es-AR')}` : '—'
+      const unit = i.price ? `$${i.price.toLocaleString('es-AR')}` : ''
+      return `<tr>
+        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-family:monospace;font-size:12px;color:#12264e;font-weight:700">${i.code}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:13px">${i.name}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:center;color:#666">${i.size}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:13px;text-align:center;font-weight:700">${i.qty}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:right;color:#555">${unit}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:13px;text-align:right;font-weight:700;color:#12264e">${sub}</td>
+      </tr>`
+    }).join('')
+    const totalRow = hasPrices ? `<tr>
+      <td colspan="5" style="padding:10px 10px 6px;text-align:right;font-size:14px;font-weight:700;color:#333">Total estimado</td>
+      <td style="padding:10px 10px 6px;text-align:right;font-size:16px;font-weight:700;color:#12264e">$${subtotal.toLocaleString('es-AR')}</td>
+    </tr>` : ''
+    const notesRow = notes ? `<div style="margin-top:16px;padding:12px;background:#f9f9f9;border-radius:8px;font-size:13px;color:#444"><strong>Notas:</strong> ${notes}</div>` : ''
+    return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"></head><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;padding:24px;margin:0">
+<div style="max-width:620px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)">
+  <div style="background:#12264e;padding:20px 28px;display:flex;justify-content:space-between;align-items:center">
+    <div><span style="font-family:Georgia,serif;font-size:24px;font-weight:700;color:#fff">AdherNeo</span><div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">Productos ortopédicos</div></div>
+    <div style="text-align:right"><div style="background:rgba(255,255,255,.2);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.06em">NUEVO PEDIDO</div><div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:5px">${date}</div></div>
+  </div>
+  <div style="padding:24px 28px">
+    <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin:0 0 10px">Datos del cliente</p>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+      <tr><td style="padding:4px 0;font-size:12px;color:#888;width:90px">Nombre</td><td style="padding:4px 0;font-size:13px;color:#1a1a1a;font-weight:600">${name}</td></tr>
+      <tr><td style="padding:4px 0;font-size:12px;color:#888">Email</td><td style="padding:4px 0;font-size:13px;color:#1a1a1a">${effectiveEmail}</td></tr>
+      ${phone ? `<tr><td style="padding:4px 0;font-size:12px;color:#888">Teléfono</td><td style="padding:4px 0;font-size:13px;color:#1a1a1a">${phone}</td></tr>` : ''}
+    </table>
+    <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin:0 0 8px">Artículos</p>
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:#f5f8ff">
+        <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555">Cód.</th>
+        <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555">Producto</th>
+        <th style="padding:8px 10px;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555">Talle</th>
+        <th style="padding:8px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555">Cant.</th>
+        <th style="padding:8px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555">P. Unit.</th>
+        <th style="padding:8px 10px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555">Subtotal</th>
+      </tr></thead>
+      <tbody>${rows}${totalRow}</tbody>
+    </table>
+    ${notesRow}
+  </div>
+  <div style="padding:14px 28px;border-top:1px solid #eee;font-size:11px;color:#aaa;text-align:center">adherneo@hotmail.com · Este documento no es una factura oficial</div>
+</div>
+</body></html>`
   }
 
   async function saveToDb() {
@@ -83,105 +121,12 @@ export default function Order() {
     } catch { /* non-critical */ }
   }
 
-  function printInvoice() {
-    const s = snapshot.current
-    if (!s) return
-    const date = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
-    const rows = s.items.map(i => {
-      const sub = i.price ? `$${(i.price * i.qty).toLocaleString('es-AR')}` : '—'
-      const unit = i.price ? `$${i.price.toLocaleString('es-AR')}` : ''
-      return `<tr>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-family:monospace;font-size:12px;color:#12264e;font-weight:700">${i.code}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:13px">${i.name}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:center;color:#666">${i.size}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:13px;text-align:center;font-weight:700">${i.qty}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:right;color:#555">${unit}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:13px;text-align:right;font-weight:700;color:#12264e">${sub}</td>
-      </tr>`
-    }).join('')
-    const totalRow = s.subtotal > 0 ? `
-      <tr>
-        <td colspan="5" style="padding:10px 10px 6px;text-align:right;font-size:14px;font-weight:700;color:#333">Total estimado</td>
-        <td style="padding:10px 10px 6px;text-align:right;font-size:16px;font-weight:700;color:#12264e">$${s.subtotal.toLocaleString('es-AR')}</td>
-      </tr>` : ''
-    const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Pedido AdherNeo</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:#1a1a1a;padding:20mm}
-@page{size:A4;margin:15mm}
-@media print{body{padding:0}}
-.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #12264e;padding-bottom:14px;margin-bottom:20px}
-.logo-text{font-family:Georgia,serif;font-size:28px;font-weight:700;color:#12264e}
-.logo-sub{font-size:11px;color:#888;margin-top:3px;letter-spacing:.05em}
-.badge{background:#12264e;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase}
-.section{margin-bottom:18px}
-.section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:8px}
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px}
-.info-item label{font-size:10px;color:#888;display:block;margin-bottom:2px}
-.info-item span{font-size:13px;color:#1a1a1a}
-table{width:100%;border-collapse:collapse;margin-top:6px}
-thead tr{background:#f5f8ff}
-thead th{padding:8px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555}
-thead th:last-child,thead th:nth-child(4),thead th:nth-child(5){text-align:right}
-thead th:nth-child(3){text-align:center}
-.footer{margin-top:24px;padding-top:12px;border-top:1px solid #eee;font-size:11px;color:#aaa;text-align:center}
-.print-btn{position:fixed;bottom:20px;right:20px;background:#12264e;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:sans-serif}
-@media print{.print-btn{display:none}}
-</style></head><body>
-<div class="header">
-  <div>
-    <div class="logo-text">AdherNeo</div>
-    <div class="logo-sub">Productos ortopédicos</div>
-  </div>
-  <div style="text-align:right">
-    <div class="badge">Pedido</div>
-    <div style="font-size:12px;color:#888;margin-top:6px">${date}</div>
-  </div>
-</div>
-<div class="section">
-  <div class="section-title">Datos del cliente</div>
-  <div class="info-grid">
-    <div class="info-item"><label>Nombre</label><span>${s.name}</span></div>
-    <div class="info-item"><label>Email</label><span>${s.email}</span></div>
-    ${s.phone ? `<div class="info-item"><label>Teléfono</label><span>${s.phone}</span></div>` : ''}
-  </div>
-</div>
-<div class="section">
-  <div class="section-title">Artículos</div>
-  <table>
-    <thead><tr>
-      <th>Código</th><th>Producto</th><th style="text-align:center">Talle</th>
-      <th style="text-align:right">Cant.</th><th style="text-align:right">P. Unit.</th><th style="text-align:right">Subtotal</th>
-    </tr></thead>
-    <tbody>${rows}${totalRow}</tbody>
-  </table>
-</div>
-<div class="footer">AdherNeo · adherneo@hotmail.com · Este documento no es una factura oficial</div>
-<button class="print-btn" onclick="window.print()">Imprimir / Guardar PDF</button>
-</body></html>`
-    let iframe = document.getElementById('_invoice_frame') as HTMLIFrameElement | null
-    if (iframe) iframe.remove()
-    iframe = document.createElement('iframe')
-    iframe.id = '_invoice_frame'
-    iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;background:#fff'
-    document.body.appendChild(iframe)
-    iframe.srcdoc = html
-    iframe.onload = () => {
-      // add close button via parent overlay
-      const close = document.createElement('button')
-      close.textContent = '✕ Cerrar'
-      close.style.cssText = 'position:fixed;top:14px;left:20px;z-index:10000;background:#c0392b;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:sans-serif'
-      close.onclick = () => { iframe!.remove(); close.remove() }
-      document.body.appendChild(close)
-    }
-  }
-
   function openWA() {
     const s = snapshot.current
     if (!s) return
-    const lines = s.items.map(i => `• ${i.code}. ${i.name} | ${i.size} ×${i.qty}${i.price ? ` ($${(i.price * i.qty).toLocaleString('es-AR')})` : ''}`).join('\n')
-    const total = s.subtotal > 0 ? `\n💰 Total: $${s.subtotal.toLocaleString('es-AR')}` : ''
-    const msg = `🛒 *Nuevo pedido AdherNeo*\n👤 ${s.name}\n📧 ${s.email}${s.phone ? `\n📞 ${s.phone}` : ''}\n\n${lines}${total}`
+    const lines = s.items.map(i => `- ${i.code}. ${i.name} | ${i.size} x${i.qty}${i.price ? ` ($${(i.price * i.qty).toLocaleString('es-AR')})` : ''}`).join('\n')
+    const totalLine = s.subtotal > 0 ? `\nTotal: $${s.subtotal.toLocaleString('es-AR')}` : ''
+    const msg = `*Nuevo pedido AdherNeo*\nNombre: ${s.name}\nEmail: ${s.email}${s.phone ? `\nTel: ${s.phone}` : ''}\n\n${lines}${totalLine}`
     window.open(`https://wa.me/${WA_ADMIN}?text=${encodeURIComponent(msg)}`, '_blank')
   }
 
@@ -198,7 +143,7 @@ thead th:nth-child(3){text-align:center}
     try {
       await loadEmailJS()
       await emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, {
-        subject:  `Nuevo Pedido - ${name}`,
+        subject:  `Nuevo Pedido - ${name.trim()}`,
         body:     buildEmailBody(),
         reply_to: effectiveEmail,
       })
@@ -206,8 +151,6 @@ thead th:nth-child(3){text-align:center}
       snapshot.current = { name: name.trim(), email: effectiveEmail, phone: phone.trim(), items: [...items], subtotal }
       clear()
       setStatus('success')
-      // Abrir WhatsApp automáticamente (puede bloquearse según el navegador)
-      setTimeout(() => openWA(), 400)
     } catch {
       setStatus('error')
       setErrorMsg('Hubo un error al enviar. Verificá tu conexión o intentá de nuevo.')
@@ -232,19 +175,7 @@ thead th:nth-child(3){text-align:center}
                 <Link to="/productos" className="btn-secondary">Seguir comprando</Link>
                 <Link to="/"          className="btn-primary">Ir al inicio</Link>
               </div>
-              <div className="flex flex-wrap gap-3 justify-center pt-3" style={{ borderTop: '1px solid var(--border)' }}>
-                <button
-                  onClick={printInvoice}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-[9px] text-[13px] font-semibold transition-all duration-150 cursor-pointer"
-                  style={{ background: 'var(--sky)', border: '1px solid var(--border)', color: 'var(--navy)' }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--sky-mid)' }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--sky)' }}
-                >
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
-                  </svg>
-                  Imprimir / PDF
-                </button>
+              <div className="flex justify-center pt-3" style={{ borderTop: '1px solid var(--border)' }}>
                 <button
                   onClick={openWA}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-[9px] text-[13px] font-semibold transition-all duration-150 cursor-pointer"
